@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>幸运抽签</title>
+<style>
+body{
+    font-family:Arial;
+    text-align:center;
+    margin-top:100px;
+}
+button{
+    padding:15px 40px;
+    font-size:22px;
+}
+#result{
+    margin-top:40px;
+    font-size:40px;
+    color:red;
+    font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<h2>点击开始抽签</h2>
+
+<button onclick="draw()">开始抽签</button>
+
+<div id="result"></div>
+
+<script>
+function draw(){
+    document.getElementById("result").innerHTML="🎉 恭喜抽中：李昀容";
+}
+</script>
+
+</body>
+</html>

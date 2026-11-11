@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: hoops-street
+    runtime: node
+    rootDir: hoops
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    plan: free

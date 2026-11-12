@@ -225,7 +225,7 @@ const camera=new THREE.PerspectiveCamera(50,__VW()/__VH(),0.05,320);
 scene.add(new THREE.HemisphereLight(0xcfe2ff,0x56654a,0.7));
 const sun=new THREE.DirectionalLight(0xfff0d8,2.7);
 sun.position.set(4,8,6); sun.castShadow=true;
-sun.shadow.mapSize.set(2048,2048);
+sun.shadow.mapSize.set(...(matchMedia('(pointer:coarse)').matches?[2048,2048]:[4096,4096]));
 Object.assign(sun.shadow.camera,{left:-10,right:10,top:10,bottom:-10,near:0.5,far:40});
 sun.shadow.bias=-0.0004; sun.shadow.normalBias=0.02; sun.shadow.radius=3;
 scene.add(sun,sun.target);
@@ -687,6 +687,21 @@ function boxAt(w,h,d,mat,x,y,z,shadow=true){const m=new THREE.Mesh(new THREE.Box
   }
 }
 
+function mergeGeo(list){ const pos=[],nor=[]; for(const g0 of list){ const g=g0.index?g0.toNonIndexed():g0; pos.push(...g.attributes.position.array); nor.push(...g.attributes.normal.array); }
+  const m=new THREE.BufferGeometry(); m.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); m.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3)); return m; }
+const SPH=(r,x,y,z,sx=1,sy=1,sz=1,w=12,h=9)=>new THREE.SphereGeometry(r,w,h).scale(sx,sy,sz).translate(x,y,z);
+const BOX=(a,b,c,x,y,z,rz=0)=>new THREE.BoxGeometry(a,b,c).rotateZ(rz).translate(x,y,z);
+// face parts for a head whose front surface is at z≈fz, eye line at ey; s scales the whole face
+function faceGeos(fz,ey,s=1){
+  const white=mergeGeo([-1,1].map(k=>SPH(.0165*s,k*.034*s,ey,fz-.012*s,1,.8,.6)));
+  const dark=mergeGeo([...[-1,1].map(k=>SPH(.0085*s,k*.034*s,ey,fz-.003*s,1,1,.5,10,8)),
+    ...[-1,1].map(k=>BOX(.034*s,.0065*s,.012*s,k*.035*s,ey+.024*s,fz-.006*s,k*-.12))]);
+  const skinG=mergeGeo([SPH(.013*s,0,ey-.033*s,fz+.004*s,1,1.5,1.2),SPH(.009*s,-.01*s,ey-.047*s,fz-.002*s),SPH(.009*s,.01*s,ey-.047*s,fz-.002*s)]);
+  const lips=mergeGeo([SPH(.019*s,0,ey-.072*s,fz-.006*s,1.25,.32,.5),SPH(.017*s,0,ey-.081*s,fz-.007*s,1.15,.36,.5)]);
+  return {white,dark,skinG,lips}; }
+const EYE_WHITE=new THREE.MeshStandardMaterial({color:0xf6f4f0,roughness:.35}), EYE_DARK=new THREE.MeshStandardMaterial({color:0x1a120d,roughness:.4});
+function lipColor(hex){ return new THREE.Color(hex).lerp(new THREE.Color(0xa0453c),0.45).multiplyScalar(0.85); }
+function noShadow(o){ o.traverse(m=>{ if(m.isMesh) m.userData.noShadow=true; }); return o; }
 // ---------- people (crowd, refs, benches) ----------
 const SKINS=[0xf1c9a5,0xe0ac69,0xc68642,0x8d5524,0xf3d2b6,0xd9a578];
 const crowd=[];
@@ -697,7 +712,9 @@ const crowd=[];
   for(const e of [-1,1]) for(let i=0;i<3;i++){const z=e*(16.8+i*0.9+0.5), y=(i+1)*0.45; for(let x=-6.1;x<=6.1;x+=0.72) if(Math.random()<0.7) seats.push({x,y,z,yaw:e>0?Math.PI:0})}
   const N=seats.length;
   const torsoI=new THREE.InstancedMesh(new THREE.CapsuleGeometry(.17,.28,6,14).scale(1.12,1,.78),new THREE.MeshStandardMaterial({roughness:.9}),N);
-  const headI=new THREE.InstancedMesh(new THREE.SphereGeometry(.11,14,10),new THREE.MeshStandardMaterial({roughness:.8}),N);
+  const headI=new THREE.InstancedMesh(new THREE.SphereGeometry(.11,16,12),new THREE.MeshStandardMaterial({roughness:.8}),N);
+  const CF=faceGeos(.108,.02,1.05); const faceI=new THREE.InstancedMesh(mergeGeo([CF.dark]),EYE_DARK,N), eyeWI=new THREE.InstancedMesh(CF.white,EYE_WHITE,N);
+  const earI=new THREE.InstancedMesh(mergeGeo([CF.skinG,...[-1,1].map(k=>SPH(1,k*.108,0,-.01,.016,.032,.022,10,8))]),new THREE.MeshStandardMaterial({roughness:.8}),N), lipI=new THREE.InstancedMesh(CF.lips,new THREE.MeshStandardMaterial({roughness:.5}),N);
   const hairI=new THREE.InstancedMesh(new THREE.SphereGeometry(.117,16,12,0,Math.PI*2,0,Math.PI*0.55),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.9}),N);
   const armGeo=new THREE.CapsuleGeometry(.045,.4,4,8); armGeo.translate(0,-.25,0);
   const armI=new THREE.InstancedMesh(armGeo,new THREE.MeshStandardMaterial({roughness:.9}),N*2);
@@ -710,13 +727,14 @@ const crowd=[];
   seats.forEach((s,i)=>{
     const sc=shirts[(Math.random()*shirts.length)|0], sk=SKINS[(Math.random()*SKINS.length)|0];
     const shortS=Math.random()<0.5, ac=shortS?sk:sc;
-    torsoI.setColorAt(i,col.set(sc)); headI.setColorAt(i,col.set(sk)); armI.setColorAt(i*2,col.set(ac)); armI.setColorAt(i*2+1,col.set(ac));
+    torsoI.setColorAt(i,col.set(sc)); headI.setColorAt(i,col.set(sk)); earI.setColorAt(i,col.set(sk)); lipI.setColorAt(i,lipColor(sk)); armI.setColorAt(i*2,col.set(ac)); armI.setColorAt(i*2+1,col.set(ac));
     hairI.setColorAt(i,col.set([0x15110e,0x15110e,0x2a1a10,0x4a2c18,0x6b4a2a,0xb08a4a][(Math.random()*6)|0])); legI.setColorAt(i,col.set([0x2c3440,0x1d2a4a,0x3a3a3a,0x6b6b5a,0x1f4f8f,0xd8d2c4][(Math.random()*6)|0]));
     const cap=Math.random()<0.25; capI.setColorAt(i,col.set([0xb02a28,0x1f3f8f,0x111111,0xf2c14e,0xffffff][(Math.random()*5)|0]));
     crowd.push({...s,ph:Math.random()*6.28,amp:0.6+Math.random()*0.6,hs:0.92+Math.random()*0.16,cap});
   });
   [torsoI,headI,hairI,armI,legI,shoeI,capI].forEach(m=>{m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.castShadow=true;scene.add(m)});
-  window.__crowd={torsoI,headI,hairI,armI,legI,shoeI,capI};
+  [faceI,eyeWI,earI,lipI].forEach(m=>{m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(m)});
+  window.__crowd={torsoI,headI,hairI,armI,legI,shoeI,capI,faceI,eyeWI,earI,lipI};
 }
 function makeNPC(o){
   const skin=stdMat(o.skin??SKINS[(Math.random()*SKINS.length)|0],{roughness:.75});
@@ -729,6 +747,19 @@ function makeNPC(o){
   const head=new THREE.Group(); head.position.set(0,.66,0); spine.add(head);
   head.add(mesh(new THREE.SphereGeometry(1,20,14),skin,0,0,0,.095,.115,.105));
   head.add(mesh(new THREE.SphereGeometry(1,20,12,0,Math.PI*2,0,Math.PI*.55),stdMat(o.hair??0x1d1611),0,.012,-.008,.1,.12,.11).rotateX(-.3));
+  { // face: eyes, eyebrows, nose, lips, ears, jaw
+    const F=faceGeos(.103,.018), skinHex=skin.color.getHex(), hairM=stdMat(o.hair??0x1d1611,{roughness:.9});
+    head.add(noShadow(new THREE.Mesh(F.white,EYE_WHITE)), noShadow(new THREE.Mesh(F.dark,EYE_DARK)), noShadow(new THREE.Mesh(F.skinG,skin)), noShadow(new THREE.Mesh(F.lips,stdMat(lipColor(skinHex).getHex(),{roughness:.5}))));
+    head.add(new THREE.Mesh(mergeGeo([SPH(1,0,-.062,.03,.068,.048,.07,14,10),...[-1,1].map(k=>SPH(1,k*.094,-.002,-.008,.014,.03,.02,10,8))]),skin));
+  }
+  // body shape under the shirt: chest, shoulder blades, belly; collar and hem trims
+  { const trimM=stdMat(o.trim??new THREE.Color(o.shirt??0xffffff).multiplyScalar(0.55).getHex(),{roughness:.8});
+    spine.add(new THREE.Mesh(mergeGeo([SPH(1,-.062,.37,.06,.09,.06,.056,14,10),SPH(1,.062,.37,.06,.09,.06,.056,14,10),SPH(1,0,.36,-.065,.16,.1,.05,14,10)]),shirt));
+    spine.add(noShadow(new THREE.Mesh(new THREE.TorusGeometry(.058,.011,8,24).rotateX(Math.PI/2).translate(0,.5,0),trimM)));
+    spine.add(noShadow(new THREE.Mesh(new THREE.TorusGeometry(1,.012,6,28).rotateX(Math.PI/2).scale(.188,1,.115).translate(0,.04,0),trimM)));
+    if(o.sleeves) spine.add(noShadow(new THREE.Mesh(mergeGeo([0,1,2,3].map(k=>SPH(.006,0,.44-k*.07,.115))),trimM)));
+    hips.add(noShadow(new THREE.Mesh(new THREE.TorusGeometry(1,.016,6,28).rotateX(Math.PI/2).scale(.17,1,.13).translate(0,.07,0),stdMat(new THREE.Color(o.pants??0x333333).multiplyScalar(0.6).getHex(),{roughness:.85}))));
+  }
   if(o.number!==undefined){
     const nt=canvasTex(128,128,gg=>{gg.fillStyle='#fff';gg.font='bold 96px sans-serif';gg.textAlign='center';gg.textBaseline='middle';gg.fillText(String(o.number),64,70)});
     const nm=new THREE.MeshBasicMaterial({map:nt,transparent:true});
@@ -737,12 +768,28 @@ function makeNPC(o){
   }
   const arm=side=>{const sh=new THREE.Group(); sh.position.set(side*.2,.43,0); spine.add(sh);
     const up=limb(.29,.052,o.sleeves?shirt:skin,.045); sh.add(up.pivot); const low=limb(.25,.044,skin,.038); up.end.add(low.pivot);
-    low.end.add(mesh(new THREE.SphereGeometry(1,10,8),skin,0,-.05,0,.03,.06,.04)); return {sh:up.pivot,el:low.pivot}};
+    // deltoid, biceps and triceps on the upper arm, forearm muscle, hand with fingers and thumb
+    up.pivot.add(new THREE.Mesh(mergeGeo([SPH(1,0,-.02,0,.066,.07,.064,12,9),SPH(1,0,-.13,.018,.05,.09,.048),SPH(1,0,-.12,-.016,.046,.1,.046)]),o.sleeves?shirt:skin));
+    if(!o.sleeves) up.pivot.add(noShadow(new THREE.Mesh(new THREE.TorusGeometry(.058,.009,6,18).rotateX(Math.PI/2).translate(0,-.005,0),stdMat(new THREE.Color(o.shirt??0xffffff).multiplyScalar(0.55).getHex()))));
+    else up.pivot.add(noShadow(new THREE.Mesh(new THREE.TorusGeometry(.05,.008,6,18).rotateX(Math.PI/2).translate(0,-.27,0),shirt)));
+    low.pivot.add(new THREE.Mesh(SPH(1,0,-.07,.006,.046,.08,.043),skin));
+    low.end.add(new THREE.Mesh(mergeGeo([SPH(1,0,-.045,0,.03,.05,.04),...[0,1,2,3].map(k=>new THREE.CapsuleGeometry(.008,.04,3,6).translate(0,-.1,-.024+k*.016)),new THREE.CapsuleGeometry(.009,.03,3,6).rotateX(.6).translate(0,-.05,.04)]),skin));
+    return {sh:up.pivot,el:low.pivot}};
   const leg=side=>{const hp=new THREE.Group(); hp.position.set(side*.09,-.03,0); hips.add(hp);
     const th=limb(.44,.075,pants,.06); hp.add(th.pivot); const kn=limb(.42,.055,o.shortsLegs?skin:pants,.045); th.end.add(kn.pivot);
-    kn.end.add(mesh(new THREE.BoxGeometry(.1,.07,.26),stdMat(o.shoe??0xf0f0ee),0,-.04,.05)); return {th:th.pivot,kn:kn.pivot}};
+    // thigh and calf muscles, knee, shorts hem and side stripe, socks, shaped shoes with soles
+    th.pivot.add(new THREE.Mesh(mergeGeo([SPH(1,0,-.17,.02,.082,.16,.078),SPH(1,0,-.2,-.02,.074,.14,.07)]),pants));
+    kn.pivot.add(new THREE.Mesh(mergeGeo([SPH(1,0,-.13,-.026,.056,.11,.058),SPH(1,0,.0,.035,.04,.035,.03)]),o.shortsLegs?skin:pants));
+    if(o.shortsLegs){ th.pivot.add(noShadow(new THREE.Mesh(new THREE.TorusGeometry(.072,.01,6,18).rotateX(Math.PI/2).translate(0,-.43,0),stdMat(new THREE.Color(o.pants??0x333333).multiplyScalar(0.6).getHex()))));
+      th.pivot.add(noShadow(new THREE.Mesh(BOX(.01,.36,.03,side*.081,-.2,0),stdMat(0xf4f4f4,{roughness:.8}))));
+      kn.end.add(new THREE.Mesh(new THREE.CylinderGeometry(.047,.045,.14,12).translate(0,.06,0),stdMat(0xf6f6f4,{roughness:.9}))); }
+    const shoeC=o.shoe??0xf0f0ee;
+    kn.end.add(new THREE.Mesh(mergeGeo([SPH(1,0,-.035,.04,.054,.042,.13,14,10),SPH(1,0,-.03,-.04,.05,.05,.06,12,9)]),stdMat(shoeC,{roughness:.55})));
+    kn.end.add(new THREE.Mesh(BOX(.11,.022,.29,0,-.07,.05),stdMat(new THREE.Color(shoeC).getHSL({}).l>0.5?0x2a2a2e:0xf2f2f0,{roughness:.9})));
+    kn.end.add(noShadow(new THREE.Mesh(BOX(.035,.006,.1,0,-.003,.08),stdMat(0xffffff,{roughness:.8}))));
+    return {th:th.pivot,kn:kn.pivot}};
   const n={g,hips,spine,head,aL:arm(1),aR:arm(-1),lL:leg(1),lR:leg(-1),phase:Math.random()*6};
-  g.traverse(m=>{if(m.isMesh){m.castShadow=true}}); scene.add(g); return n;
+  g.traverse(m=>{if(m.isMesh&&!m.userData.noShadow){m.castShadow=true}}); scene.add(g); return n;
 }
 function npcPose(n,P){
   const v=k=>P[k]??0;
@@ -776,7 +823,7 @@ function updateWorld(dt){
     const cy=c.y+0.42+bounce-(dn?0.12:0), cs=Math.cos(c.yaw), sn=Math.sin(c.yaw);
     _e.set(dn?-1.0:0,c.yaw,sway); _qq.setFromEuler(_e); _s.set(c.hs,c.hs,c.hs);
     _m.compose(_p.set(c.x,cy,c.z),_qq,_s); C.torsoI.setMatrixAt(i,_m);
-    const hf=dn?-0.3:0.02, hy=dn?0.26:0.44; _m.compose(_p.set(c.x+sn*hf,cy+hy*c.hs,c.z+cs*hf),_qq,_s); C.headI.setMatrixAt(i,_m);
+    const hf=dn?-0.3:0.02, hy=dn?0.26:0.44; _m.compose(_p.set(c.x+sn*hf,cy+hy*c.hs,c.z+cs*hf),_qq,_s); C.headI.setMatrixAt(i,_m); C.faceI.setMatrixAt(i,_m); C.eyeWI.setMatrixAt(i,_m); C.earI.setMatrixAt(i,_m); C.lipI.setMatrixAt(i,_m);
     _m.compose(_p.set(c.x+sn*(hf-0.025),cy+(hy+0.015)*c.hs,c.z+cs*(hf-0.025)),_qq,_s); C.hairI.setMatrixAt(i,_m);
     if(c.cap){ _m.compose(_p.set(c.x+sn*(hf-0.02),cy+(hy+0.03)*c.hs,c.z+cs*(hf-0.02)),_qq,_s); } else _m.makeScale(0,0,0); C.capI.setMatrixAt(i,_m);
     _e.set(0,c.yaw,0); _qq.setFromEuler(_e); _m.compose(_p.set(c.x+sn*0.2,c.y+0.12,c.z+cs*0.2),_qq,_s); C.legI.setMatrixAt(i,_m); C.shoeI.setMatrixAt(i,_m);
@@ -787,7 +834,7 @@ function updateWorld(dt){
       _m.compose(_p.set(c.x+cs*side*0.21*c.hs,cy+0.26*c.hs,c.z-sn*side*0.21*c.hs),_qq,_s); C.armI.setMatrixAt(i*2+(side>0?1:0),_m);
     }
   });
-  for(const k of ['torsoI','headI','hairI','armI','legI','shoeI','capI']) C[k].instanceMatrix.needsUpdate=true;
+  for(const k of ['torsoI','headI','hairI','armI','legI','shoeI','capI','faceI','eyeWI','earI','lipI']) C[k].instanceMatrix.needsUpdate=true;
   // referees follow the play along the sidelines
   refs.forEach((r,i)=>{ if(npcAI(r,dt)) return;
     const tz=Math.max(-12.5,Math.min(12.5,avatar.position.z+(i?-3:2))), dz=tz-r.g.position.z, mv=Math.max(-3,Math.min(3,dz*1.5))*dt;
@@ -1896,9 +1943,11 @@ async function initSave(){
   const [db,user]=await Promise.all([claude.use('db'),claude.use('user')]); if(!db||!user) return;
   try{ const id=await user.id(); if(!id) return; saveDoc=db.collection('data/users/'+id).doc('save'); const s=await saveDoc.get(); if(s&&s.exists){ Object.assign(SAVE,s.data()); migrateSave(); applySave(); } }catch(e){ saveDoc=null; }
 }
+let guestFace=null;
 function setGuestLook(){
+  if(!guestFace){ const F=faceGeos(.052,.024,1.0); guestFace=new THREE.Group(); guestFace.add(new THREE.Mesh(F.white,EYE_WHITE),new THREE.Mesh(F.dark,EYE_DARK),new THREE.Mesh(F.skinG,M.skin),new THREE.Mesh(F.lips,stdMat(lipColor(M.skin.color.getHex()).getHex(),{roughness:.5}))); guestFace.userData.keep=true; head.add(guestFace); }
   isGuest=true; window.__skinDefault=M.skin.color.clone(); if(window.__body) window.__body.visible=false; if(window.__splat) window.__splat.visible=false;
-  avatar.traverse(o=>{ if(o.isMesh) o.visible=true; }); head.traverse(m=>{ if(m.isMesh&&(m.material.map||m.material.vertexColors)) m.visible=false; });
+  avatar.traverse(o=>{ if(o.isMesh) o.visible=true; }); head.traverse(m=>{ if(m.isMesh&&(m.material.map||m.material.vertexColors)) m.visible=false; }); if(guestFace) guestFace.traverse(m=>{ if(m.isMesh) m.visible=true; }); if(window.__splat) window.__splat.visible=false;
   shells.forEach(s=>scene.remove(s)); shells=[]; applyOutfit();
 }
 // ---------- the match: 1-on-1, first to 21; one attacks, one defends ----------

@@ -166,7 +166,7 @@
 <div id="fade"></div>
 <div id="start" hidden><div class="pbox sbox"><b class="stt">联机篮球街区</b>
   <label class="sl" for="nm">你的名字</label><input id="nm" maxlength="12" placeholder="比如：明明" autocomplete="off">
-  <div class="psec">形象</div><div class="prow2"><button id="lkScan" class="fpb">主角扫描形象</button><button id="lkGen" class="fpb on">通用球员</button></div>
+  <div class="psec">形象（选一次会记住）</div><div class="prow2"><button id="lkMix" class="fpb">我的头 + 3D身体</button><button id="lkScan" class="fpb">我的扫描全身（原版）</button><button id="lkGen" class="fpb on">3D 球员（给朋友用）</button></div>
   <button id="go">进入游戏</button><div class="pnote">打开同一个网址的人会自动连在一起。电脑：WASD 移动；手机：左下摇杆。</div></div></div>
 <div id="hsb" hidden></div>
 <div id="blind" hidden><div><b>闭眼中…</b><span id="blindT"></span></div></div>
@@ -524,7 +524,7 @@ var HIP_OFF=0;
   const sortSplats=()=>{
     renderer.getDrawingBufferSize(vp); smat.uniforms.viewport.value.copy(vp);
     if((sortTick++)%2) return;
-    camera.updateMatrixWorld(); mv.multiplyMatrices(camera.matrixWorldInverse,splat.matrixWorld); const e=mv.elements;
+    camera.updateMatrixWorld(); mv.multiplyMatrices(camera.matrixWorldInverse,(window.__splatSortObj||splat).matrixWorld); const e=mv.elements;
     let zmin=1e9,zmax=-1e9;
     for(let i=0;i<NS;i++){const z=e[2]*ctr[i*3]+e[6]*ctr[i*3+1]+e[10]*ctr[i*3+2]+e[14]; zs[i]=z; if(z<zmin)zmin=z; if(z>zmax)zmax=z;}
     const sc=65535/Math.max(1e-6,zmax-zmin); counts.fill(0);
@@ -2337,7 +2337,7 @@ function upsertRemote(p){
     r.shirtMat=n.spine.children[0].material; r.skinMat=n.head.children[0].material; r.pantsMat=n.hips.children[0].material; MP.peers.set(p.peer,r);
     if(MP.user&&p.by) MP.user.profiles([p.by]).then(ps=>{ const nm=(ps[p.by]&&ps[p.by].name)||'朋友'; r.name=nm; scene.remove(r.tag); r.tag=makeTag(nm); toast(nm+' 加入了游戏'); }).catch(()=>{}); else toast('有朋友加入了游戏');
   }
-  r.pr=pr; remoteLook(r,pr);
+  r.pr=pr; remoteLook(r,pr); r.n.wantHead=pr.lk==='h';
   if(pr.name&&String(pr.name).slice(0,12)!==r.name){ r.name=String(pr.name).slice(0,12); scene.remove(r.tag); r.tag=makeTag(r.name); }
   for(const e of (pr.ev||[])){ if(!(e.s>r.last)) continue; r.last=e.s;
     if(e.k==='shot'&&e.a&&e.b){ const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...e.a),new THREE.Vector3(...e.b)]),new THREE.LineBasicMaterial({color:0xffe08a,transparent:true,opacity:.9})); ln.userData.t=0.12; scene.add(ln); tracers.push(ln); sfx(1500,0.16,0.35); }
@@ -2374,16 +2374,16 @@ function makeWsRoom(url){
     connected:()=>live, send(o){ if(ws&&ws.readyState===1) ws.send(JSON.stringify(o)); }, onMsg(f){ mcbs.push(f); } };
 }
 function startScreen(){ return new Promise(res=>{
-  let owner=false; try{ $('nm').value=localStorage.getItem('hoops_name')||''; owner=localStorage.getItem('hoops_owner')==='1'; }catch(e){}
-  const sel=()=>{ $('lkScan').classList.toggle('on',owner); $('lkGen').classList.toggle('on',!owner); }; sel();
-  $('lkScan').onclick=()=>{owner=true;sel()}; $('lkGen').onclick=()=>{owner=false;sel()};
-  $('go').onclick=()=>{ const n=$('nm').value.trim().slice(0,12)||'球员'+((Math.random()*900+100)|0); MP.myName=n; window.__iAmOwner=owner;
+  let look='pro'; try{ $('nm').value=localStorage.getItem('hoops_name')||''; look=localStorage.getItem('hoops_look')||(localStorage.getItem('hoops_owner')==='1'?'mix':'pro'); }catch(e){}
+  const sel=()=>{ $('lkMix').classList.toggle('on',look==='mix'); $('lkScan').classList.toggle('on',look==='scan'); $('lkGen').classList.toggle('on',look==='pro'); }; sel();
+  $('lkMix').onclick=()=>{look='mix';sel()}; $('lkScan').onclick=()=>{look='scan';sel()}; $('lkGen').onclick=()=>{look='pro';sel()};
+  $('go').onclick=()=>{ const n=$('nm').value.trim().slice(0,12)||'球员'+((Math.random()*900+100)|0); MP.myName=n; window.__iAmOwner=look!=='pro'; window.__look=look;
     try{ const de=document.documentElement; if(matchMedia('(pointer:coarse)').matches&&de.requestFullscreen) de.requestFullscreen({navigationUI:'hide'}).then(()=>screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape')).catch(()=>{}); }catch(e){}
-    try{ localStorage.setItem('hoops_name',n); localStorage.setItem('hoops_owner',owner?'1':'0'); }catch(e){} $('start').hidden=true; res(); };
+    try{ localStorage.setItem('hoops_name',n); localStorage.setItem('hoops_owner',look!=='pro'?'1':'0'); localStorage.setItem('hoops_look',look); }catch(e){} $('start').hidden=true; res(); };
   $('start').hidden=false; }); }
 async function initMP(){
   let room=null;
-  if(window.HOOPS_STANDALONE){ await startScreen(); if(!window.__iAmOwner) setGuestLook(); room=makeWsRoom((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws'); }
+  if(window.HOOPS_STANDALONE){ await startScreen(); if(!window.__iAmOwner) setGuestLook(); if(window.__look==='mix'&&PRO.ready) upgradeMix(); room=makeWsRoom((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws'); }
   else { if(!window.claude?.use) return; MP.user=await claude.use('user'); if(MP.user){ try{ if(!(await MP.user.isOwner())) setGuestLook(); }catch(e){} } room=await claude.use('room'); }
   if(!room) return; MP.room=room; updOnline(); if(room.onMsg) room.onMsg(pvpOnMsg);
   room.onPeers(ch=>{ for(const p of ch.peers) if(p.isMe&&p.sameTab) MP.me=p.peer;
@@ -2394,7 +2394,7 @@ async function initMP(){
 function sendPresence(){
   if(!MP.room) return; const now=performance.now(); if(now-MP.lastSend<80) return; MP.lastSend=now;
   const c=car.in?{x:r2(car.g.position.x),z:r2(car.g.position.z),h:r2(car.heading),m:car.model}:null;
-  MP.room.presence({v:1,name:MP.myName||null,x:r2(avatar.position.x),z:r2(avatar.position.z),y:r2(py),yaw:r2(yaw),spd:r2(speed),st:stance,gun:gun.held,car:c,hp:Math.round(player.hp),dead:player.dead,ms:MATCH.on&&!PVP.m?[MATCH.me,MATCH.ai]:null,hb:ball.held,up:!!(ball.held&&act&&(act.type==='shot'||act.type==='layup'||act.type==='dunk')),blk:blockT>0&&!onGround,stl:!!(act&&act.type==='steal'),top:SAVE.top,bot:SAVE.bot,suit:SAVE.suit,fp:SAVE.fp,paint:SAVE.paint||null,hs:HS.role?HS.role[0]:null,ev:MP.ev}).catch(()=>{});
+  MP.room.presence({v:1,name:MP.myName||null,x:r2(avatar.position.x),z:r2(avatar.position.z),y:r2(py),yaw:r2(yaw),spd:r2(speed),st:stance,gun:gun.held,car:c,hp:Math.round(player.hp),dead:player.dead,lk:window.__iAmOwner?'h':null,ms:MATCH.on&&!PVP.m?[MATCH.me,MATCH.ai]:null,hb:ball.held,up:!!(ball.held&&act&&(act.type==='shot'||act.type==='layup'||act.type==='dunk')),blk:blockT>0&&!onGround,stl:!!(act&&act.type==='steal'),top:SAVE.top,bot:SAVE.bot,suit:SAVE.suit,fp:SAVE.fp,paint:SAVE.paint||null,hs:HS.role?HS.role[0]:null,ev:MP.ev}).catch(()=>{});
 }
 function remoteHitTest(o,d,bt){ let best=null; for(const [id,r] of MP.peers){ if(!r.pr||r.pr.dead) continue; const p=r.n.g.position; const [dist,tt]=raySeg(o,d,new THREE.Vector3(p.x,p.y+0.3,p.z),new THREE.Vector3(p.x,p.y+1.75,p.z)); if(dist<0.3&&tt<bt){bt=tt;best={kind:'remote',id,r}} } return [best,bt]; }
 function updateRemotes(dt){
@@ -2429,7 +2429,7 @@ function loadPro(){
   Promise.all([one('m','models/man.glb'),one('f','models/woman.glb')]).then(()=>{
     if(!PRO.src.m) return; PRO.ready=true;
     for(const n of PRO.list) upgradeNPC(n);
-    if(isGuest) upgradeGuest();
+    if(isGuest) upgradeGuest(); if(window.__look==='mix') upgradeMix();
     toast('3D 人物已加载');
   });
 }
@@ -2451,7 +2451,7 @@ function makePro(kind,map,restHipsY,cols){
     if(/Outfit_Top/i.test(nm)) mats.top.push(o.material); else if(/Outfit_Bottom/i.test(nm)) mats.bot.push(o.material); else if(/Footwear/i.test(nm)) mats.shoe.push(o.material); else if(/Skin|Body/i.test(nm)) mats.skin.push(o.material); });
   // variety: not every man wears the hat or the beard
   const hatC=cols.hatC??[0x1b1b1d,0x5a3a22,0x6d6f74,0x1f2f55,0xd8cfbf,0x8a2a28][(Math.random()*6)|0], beard=cols.beard??Math.random()<0.5;
-  inner.traverse(o=>{ if(!o.isMesh) return; if(/Headwear/i.test(o.name)){ o.material.color.set(hatC).lerp(new THREE.Color(1,1,1),0.25); } if(/Beard/i.test(o.name)) o.visible=beard; });
+  inner.traverse(o=>{ if(!o.isMesh) return; if(/Headwear/i.test(o.name)){ o.material.color.set(hatC).lerp(new THREE.Color(1,1,1),0.25); } if(/Beard/i.test(o.name)) o.visible=beard; o.userData.vis0=o.visible; });
   const P={root,inner,B,rest,map,restHipsY,mats,kind,tick:Math.random()*4|0,col:{}};
   colourPro(P,cols); return P;
 }
@@ -2489,6 +2489,23 @@ function upgradeNPC(n){
 }
 function npcCols(n){ const o=n.opt||{}, sm=n.spine.children[0].material, pm=n.hips.children[0].material, hm=n.head.children[0].material;
   return {top:sm.color.getHex(),topMap:sm.map||null,bot:pm.color.getHex(),botMap:pm.map&&pm.map!==sm.map?null:null,shoe:o.shoe??0xf0f0ee,skin:hm.color.getHex()}; }
+// your own scanned head (Gaussian splats) on a 3D body: the model's head is hidden and the scan rides on its head bone
+function proHead(P,on,useReal){
+  P.inner.traverse(o=>{ if(o.isMesh&&/Wolf3D_Head|Teeth|Eye|Beard|Headwear|Hair/i.test(o.name)) o.visible=on?false:(o.userData.vis0??true); });
+  if(on&&!P.headHold&&window.__splat){ const H=P.B.Head, hold=new THREE.Group(); hold.quaternion.copy(P.rest.Head.q).invert(); const ws=H.getWorldScale(new THREE.Vector3()); P.root.updateMatrixWorld(true); hold.scale.setScalar(1/(H.getWorldScale(new THREE.Vector3()).x||1)); H.add(hold); P.headHold=hold; }
+  if(on&&!P.headSplat&&window.__splat){ let sp; if(useReal){ sp=window.__splat; } else { sp=new THREE.Mesh(window.__splat.geometry,window.__splat.material); sp.matrixAutoUpdate=false; sp.matrix.copy(window.__splat.matrix); sp.frustumCulled=false; sp.renderOrder=5; } P.headHold.add(sp); sp.visible=true; P.headSplat=sp; }
+  if(P.headSplat) P.headSplat.visible=on; P.hasHead=on; }
+function upgradeMix(){
+  if(PRO.mix||!PRO.ready||!window.__splat) return;
+  if(PRO.guest){ scene.remove(PRO.guest.root); PRO.guest=null; }
+  const map={Hips:hips,Spine:spine,Head:head,L:[armL.sh,armL.el,armL.hand],R:[armR.sh,armR.el,armR.hand],LL:[legL.th,legL.kn,legL.foot],LR:[legR.th,legR.kn,legR.foot]};
+  PRO.guest=makePro('m',map,0.98+HIP_OFF,Object.assign(mixCols(),{beard:false})); PRO.mix=true;
+  // the head bone's rest frame is measured with the model standing at the origin, before it is first driven
+  proHead(PRO.guest,true,true);
+  if(window.__body) window.__body.visible=false; for(const sh of shells) sh.visible=false;
+  avatar.traverse(m=>{ if(m.isMesh&&m!==gunMesh&&!gunMesh.children.includes(m)) m.visible=false; });
+}
+function mixCols(){ const O=outfitParts(); return {top:O.tex?0xffffff:(O.top&&O.top.col!==undefined?O.top.col:0x2a2c31),topMap:O.tex||null,bot:O.tex?0xffffff:(O.bot&&O.bot.col!==undefined?O.bot.col:0x34373e),botMap:O.tex||null,shoe:0xf0f0ee,skin:M.skin.color.getHex()}; }
 function upgradeGuest(){
   if(PRO.guest||!PRO.ready) return;
   const map={Hips:hips,Spine:spine,Head:head,L:[armL.sh,armL.el,armL.hand],R:[armR.sh,armR.el,armR.hand],LL:[legL.th,legL.kn,legL.foot],LR:[legR.th,legR.kn,legR.foot]};
@@ -2504,8 +2521,11 @@ function updatePro(){
     if(!n.pro){ upgradeNPC(n); continue; }
     const far=n.g.position.distanceToSquared(camera.position)>40*40; n.pro.root.visible=n.g.visible!==false;
     if(far&&(proTick+n.pro.tick)%4) continue;
+    if(!!n.wantHead!==!!n.pro.hasHead) proHead(n.pro,!!n.wantHead,false);
     colourPro(n.pro,npcCols(n)); drivePro(n.pro,n.g); }
-  if(PRO.guest){ colourPro(PRO.guest,guestCols()); drivePro(PRO.guest,avatar); PRO.guest.root.visible=!car.in||true; }
+  if(PRO.mix) for(const sh of shells) sh.visible=false;
+  { let so=null; if(!(window.__splat&&window.__splat.visible&&window.__splat.parent)) for(const n of PRO.list) if(n.pro&&n.pro.headSplat&&n.pro.headSplat.visible&&n.g.parent){ so=n.pro.headSplat; break; } window.__splatSortObj=so; }
+  if(PRO.guest){ colourPro(PRO.guest,PRO.mix?mixCols():guestCols()); drivePro(PRO.guest,avatar); PRO.guest.root.visible=!car.in||true; }
 }
 // ---------- register houses, dealer and neighbours as things you can use ----------
 HOUSES.forEach(h=>{ for(const q of (h.upBeds||[])) INTER.push({type:'bed',x:q.x,z:q.z,r:1.9,label:'睡觉'}); if(h.bed) INTER.push({type:'bed',x:h.bed.x,z:h.bed.z,r:1.9,label:'睡觉'}); if(h.ward) INTER.push({type:'wardrobe',x:h.ward.x,z:h.ward.z,r:1.6,label:'衣柜'}); if(h.shop) INTER.push({type:h.shop,x:h.table.x,z:h.table.z,r:2.4,label:h.shopLabel}); });

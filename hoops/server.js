@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 const PUBLIC = path.join(__dirname, 'public');
 const MAX_PLAYERS = 40;
 const WIN_SCORE = 21;
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json', '.glb': 'model/gltf-binary' };
 
 const server = http.createServer((req, res) => {
   let p = decodeURIComponent((req.url || '/').split('?')[0]);

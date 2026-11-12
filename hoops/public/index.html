@@ -36,7 +36,11 @@
   #php .bar{width:150px;height:10px;border-radius:5px;background:rgba(255,255,255,.18);overflow:hidden}
   #php .bar i{display:block;height:100%;width:100%;background:#3ccf5a;transition:width .15s}
   #php b{min-width:26px;text-align:right;font-variant-numeric:tabular-nums}
-  #toast{top:calc(58px + env(safe-area-inset-top,0px))!important}
+  #toast{top:calc(96px + env(safe-area-inset-top,0px))!important}
+  #score{position:fixed;left:50%;top:calc(54px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(18,20,26,.82);padding:5px 14px;border-radius:16px;font-size:15px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;z-index:5}
+  #score[hidden]{display:none} #score .me{color:#ff7a6e} #score .op{color:#7cb8ff} #score .n{color:#ffd34d;font-size:18px;margin:0 4px} #score .ps{color:var(--muted);font-weight:600;margin-left:8px}
+  #placesBtn{border:0;border-radius:12px;padding:3px 10px;margin-left:6px;background:var(--accent);color:#06121f;font-weight:700;font-size:12px}
+  #btns #bBlock,#btns #bSteal{background:#b02a28;color:#fff}
   #hurt{position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 140px 50px rgba(220,20,20,.75);opacity:0;transition:opacity .25s}
   #dead{position:fixed;inset:0;background:rgba(40,0,0,.6);display:grid;place-items:center;z-index:50}
   #dead[hidden]{display:none}
@@ -65,7 +69,7 @@
   #wanted{color:#ff6b5e;margin-left:6px;letter-spacing:.04em} #wanted[hidden]{display:none}
   .tog{display:flex;align-items:center;gap:6px;margin:4px 0;font-size:13px;cursor:pointer} .tog input{width:18px;height:18px;accent-color:var(--accent)}
   .pnote{font-size:13px;color:var(--muted);line-height:1.5;background:rgba(255,215,77,.08);border-radius:10px;padding:8px 10px}
-  #hsb{position:fixed;left:50%;top:calc(96px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(176,42,40,.9);padding:6px 14px;border-radius:16px;font-size:14px;font-weight:700;white-space:nowrap;z-index:20}
+  #hsb{position:fixed;left:50%;top:calc(134px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:rgba(176,42,40,.9);padding:6px 14px;border-radius:16px;font-size:14px;font-weight:700;white-space:nowrap;z-index:20}
   #hsb[hidden],#blind[hidden],#paint[hidden]{display:none}
   #blind{position:fixed;inset:0;background:#05060a;display:grid;place-items:center;z-index:35;text-align:center} #blind div{display:flex;flex-direction:column;gap:8px;font-size:18px} #blind span{color:var(--muted);font-size:14px}
   #paint{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.35);z-index:46}
@@ -83,7 +87,7 @@
 <div id="hud">
   <span class="hide" id="hudHide">收起</span>
   <div class="t">我的3D分身</div>
-  <label class="tog"><input type="checkbox" id="optDef" checked> 有人防守我</label>
+  <label class="tog"><input type="checkbox" id="optDef" checked> 1对1 比赛（先到 21 分）</label>
   <div>身高 <b>182cm</b> · 体重 <b>88kg</b></div>
   <div id="hudBody">
   <div class="desk"><span class="k">W</span><span class="k">A</span><span class="k">S</span><span class="k">D</span> 移动 &nbsp;<span class="k">Shift</span> 跑</div>
@@ -93,7 +97,9 @@
   <div class="desk"><span class="k">G</span> 拿枪/放下（枪在客队替补席旁）&nbsp;点击屏幕或 <span class="k">J</span> 开枪</div>
   <div class="desk"><span class="k">Z</span> 蹲下 &nbsp;<span class="k">X</span> 趴下 &nbsp;持枪时 <span class="k">Q</span> 瞄准（开镜）</div>
   <div class="desk">按住 <span class="k">P</span> 放屁飞上天（在天上也能开枪、出拳）</div>
-  <div class="desk"><span class="k">U</span> 互动（睡觉 · 衣柜 · 买车 · 聊天）</div>
+  <div class="desk"><span class="k">U</span> 互动（睡觉 · 衣柜换装 · 买衣服 · 买枪 · 买子弹 · 买车 · 聊天）</div>
+  <div>1对1：你进攻时投篮/上篮/扣篮；你防守时靠近按「抢断」，他起跳投篮时按「盖帽」<span class="desk">（<span class="k">M</span> 或 <span class="k">E</span> 抢断，<span class="k">N</span> 或 <span class="k">空格</span> 盖帽）</span>。抢到篮板要先把球带出三分线（清球）。</div>
+  <div>每栋房子门口和屋顶都挂了招牌：服装店、枪店、子弹库、车行、我的家（衣柜）。点上方「地点」看方向和距离</div>
   <div class="desk"><span class="k">H</span> 上/下车 &nbsp;按住 <span class="k">J</span> 连发；子弹、瞄准镜走过去自动捡</div>
   <div class="desk"><span class="k">K</span> 出拳 &nbsp;<span class="k">L</span> 踢腿（被打的人会还手）</div>
   <div class="desk"><span class="k">F</span> 看脸特写 &nbsp; 鼠标拖动转视角，滚轮缩放</div>
@@ -105,6 +111,7 @@
 <div id="btns">
   <button id="bWave">挥手</button><button id="bDance">跳舞</button><button id="bFace">特写</button>
   <button id="bUse">互动</button><button id="bCar">上车</button><button id="bLayup">上篮</button><button id="bDunk">扣篮</button><button id="bGun">拿枪</button>
+  <button id="bBlock">盖帽</button><button id="bSteal">抢断</button>
   <button id="bBall" class="wide">拿球</button>
 </div>
 <div id="rcol">
@@ -119,7 +126,8 @@
 <div id="toast" hidden></div>
 <div id="melee"><button class="ibtn" id="bPunch" aria-label="出拳">出拳</button><button class="ibtn" id="bKick" aria-label="踢腿">踢腿</button></div>
 <div id="ammo" hidden></div>
-<div id="php"><span>体力</span><div class="bar"><i id="phpFill"></i></div><b id="phpNum">100</b><span class="cash" id="cash">$0</span><button id="topup">充值</button><span id="wanted" hidden></span><span id="online"></span></div>
+<div id="php"><span>体力</span><div class="bar"><i id="phpFill"></i></div><b id="phpNum">100</b><span class="cash" id="cash">$0</span><button id="topup">充值</button><button id="placesBtn">地点</button><span id="wanted" hidden></span><span id="online"></span></div>
+<div id="score" hidden></div>
 <div id="hurt"></div>
 <div id="dead" hidden><div class="dbox"><div class="dt">你被打倒了</div><div class="ds" id="deadStats"></div><div class="drow"><button id="respawn">原地复活</button><button id="restart" class="ghost">整局重开</button></div></div></div>
 <div id="fade"></div>
@@ -730,10 +738,8 @@ function updateWorld(dt){
   // LED boards scroll
   window.__led.forEach(l=>{l.offset.x=(l.offset.x+dt*0.05)%1});
   // game clock + scoreboard
-  gameClock-=dt; if(gameClock<=0){gameClock=600;period=period%4+1}
-  const mm=Math.floor(gameClock/60), ss=Math.floor(gameClock%60);
-  const key=STATS.points+'/'+STATS.guest+'|'+mm+':'+ss+'|'+period+'|'+STATS.score+'/'+STATS.shots;
-  if(key!==window.__sb.last){window.__sb.last=key; drawScoreboard(mm,ss);}
+  const key=sbKey();
+  if(key!==window.__sb.last){window.__sb.last=key; drawScoreboard(); updScoreHud();}
   // hoops: rim shake + net
   HOOPS.forEach(H=>{
     if(H.shake>0){H.shake=Math.max(0,H.shake-dt*1.8);H.rimMesh.rotation.y=Math.sin(t*40)*0.05*H.shake;H.rimMesh.rotation.x=Math.PI/2+0.12*H.shake;}
@@ -741,27 +747,48 @@ function updateWorld(dt){
   });
 }
 let gameClock=600, period=1;
-function drawScoreboard(mm,ss){
+function peerScores(){ const out=[]; for(const r of MP.peers.values()){ const ms=r.pr&&r.pr.ms; if(Array.isArray(ms)) out.push(r.name+' '+(ms[0]|0)+':'+(ms[1]|0)); if(out.length>=3) break; } return out.join('    '); }
+function sbKey(){ return [MATCH.on,MATCH.me,MATCH.ai,MATCH.poss,MATCH.clear,MATCH.phase,MATCH.last,MATCH.made,MATCH.shots,MATCH.blk,MATCH.stl,MATCH.wins,MATCH.losses,STATS.points,STATS.score,STATS.shots,STATS.threes,STATS.dunks,myName(),peerScores()].join('|'); }
+function drawScoreboard(){
   const {c,t:tx}=window.__sb, g=c.getContext('2d');
   g.fillStyle='#0b0d12'; g.fillRect(0,0,1024,420);
   g.strokeStyle='#2a2f3a'; g.lineWidth=6; g.strokeRect(6,6,1012,408);
   g.textAlign='center'; g.textBaseline='middle';
-  g.fillStyle='#ff5a4e'; g.font='bold 54px sans-serif'; g.fillText('主队 HOME',230,70);
-  g.fillStyle='#5aa2ff'; g.fillText('客队 GUEST',794,70);
-  g.fillStyle='#ffb020'; g.font='bold 170px monospace'; g.fillText(String(STATS.points).padStart(2,'0'),230,215); g.fillText(String(STATS.guest||0).padStart(2,'0'),794,215);
-  g.fillStyle='#ff3b2f'; g.font='bold 92px monospace'; g.fillText(String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0'),512,170);
-  g.fillStyle='#e8e8e8'; g.font='bold 44px sans-serif'; g.fillText('第 '+period+' 节',512,272);
-  g.fillStyle='#9aa3ad'; g.font='36px sans-serif'; g.fillText('投篮 '+STATS.score+'/'+STATS.shots+'   三分 '+STATS.threes+'   扣篮 '+STATS.dunks,512,360);
+  const fit=(txt,max,px,bold=true)=>{ g.font=(bold?'bold ':'')+px+'px sans-serif'; while(g.measureText(txt).width>max&&px>14){ px-=2; g.font=(bold?'bold ':'')+px+'px sans-serif'; } };
+  if(MATCH.on){
+    const L=myName(), R=OPP_NAME;
+    g.fillStyle='#ff5a4e'; fit(L,330,50); g.fillText(L,230,62);
+    g.fillStyle='#5aa2ff'; fit(R,330,50); g.fillText(R,794,62);
+    g.fillStyle='#ffb020'; g.font='bold 170px monospace'; g.fillText(String(MATCH.me).padStart(2,'0'),230,205); g.fillText(String(MATCH.ai).padStart(2,'0'),794,205);
+    g.fillStyle='#e8e8e8'; g.font='bold 34px sans-serif'; g.fillText('1 对 1 · 先到 21 分',512,62);
+    g.fillStyle='#ffd34d'; g.font='bold 52px sans-serif'; g.fillText(MATCH.phase==='over'?'比赛结束':MATCH.poss==='me'?'◀ 进攻':'进攻 ▶',512,150);
+    g.fillStyle='#9aa3ad'; g.font='28px sans-serif'; g.fillText(MATCH.phase==='over'?'':MATCH.clear?'要先清球（带出三分线）':MATCH.phase==='check'?'准备发球':'',512,212);
+    g.fillStyle='#ffffff'; fit(MATCH.last||'',960,38); g.fillText(MATCH.last||'',512,298);
+    g.fillStyle='#9aa3ad'; g.font='28px sans-serif'; g.fillText('你：命中 '+MATCH.made+'/'+MATCH.shots+'   盖帽 '+MATCH.blk+'   抢断 '+MATCH.stl+'   战绩 '+MATCH.wins+' 胜 '+MATCH.losses+' 负',512,350);
+    const ps=peerScores(); if(ps){ g.fillStyle='#7fd18b'; fit('在线比分  '+ps,960,26,false); g.fillText('在线比分  '+ps,512,392); }
+  } else {
+    g.fillStyle='#ff5a4e'; g.font='bold 54px sans-serif'; g.fillText('自由练习',512,62);
+    g.fillStyle='#ffb020'; g.font='bold 170px monospace'; g.fillText(String(STATS.points).padStart(2,'0'),512,200);
+    g.fillStyle='#9aa3ad'; g.font='34px sans-serif'; g.fillText('投篮 '+STATS.score+'/'+STATS.shots+'   三分 '+STATS.threes+'   扣篮 '+STATS.dunks,512,320);
+    g.fillText('勾选左上角「1对1 比赛」开始抢 21 分',512,372);
+  }
   tx.needsUpdate=true;
 }
+function updScoreHud(){ const el=$('score'); if(!el) return; el.hidden=!MATCH.on; if(!MATCH.on) return; el.textContent='';
+  const sp=(cls,txt)=>{ const e=document.createElement('span'); e.className=cls; e.textContent=txt; el.append(e); };
+  sp('me',myName()); sp('n',String(MATCH.me)); sp('','：'); sp('n',String(MATCH.ai)); sp('op',OPP_NAME);
+  sp('ps',MATCH.phase==='over'?'比赛结束':(MATCH.poss==='me'?'你进攻':'你防守')+(MATCH.clear?' · 先清球':'')); }
 
 // ---------- ball ----------
 const btex=new THREE.TextureLoader().load(BALL.tex); btex.colorSpace=THREE.SRGBColorSpace; btex.anisotropy=8;
-const STATS={score:0,shots:0,points:0,threes:0,dunks:0};
+const STATS={score:0,shots:0,points:0,threes:0,dunks:0,guest:0};
+// 1-on-1 half-court match at the far (north) hoop: one attacks, one defends, first to 21
+const MATCH={on:true,ready:false,me:0,ai:0,poss:'me',clear:false,phase:'check',t:1.2,last:'',next:'me',made:0,shots:0,blk:0,stl:0,wins:0,losses:0,aist:null,react:0,outT:0,aiStealCd:1.5};
+const MH=HOOPS[0], CHECK={x:MH.rim.x,z:MH.rim.z+MH.dir*7.6};
 const ballGeo=new THREE.SphereGeometry(BR,40,28), ballMat=new THREE.MeshStandardMaterial({map:btex,roughness:.7});
 const BALL_SPOTS=[[0.9,1.0]];
 const BALLS=BALL_SPOTS.map(([x,z])=>{const m=new THREE.Mesh(ballGeo,ballMat); m.castShadow=m.receiveShadow=true; m.rotation.set(Math.random()*6,Math.random()*6,0); m.position.set(x,BR,z); scene.add(m);
-  return {p:new THREE.Vector3(x,BR,z),v:new THREE.Vector3(),held:false,dph:0,pending:2,isDunk:false,prevY:BR,hand:1,mesh:m}});
+  return {p:new THREE.Vector3(x,BR,z),v:new THREE.Vector3(),held:false,ai:false,by:null,dph:0,pending:0,isDunk:false,prevY:BR,hand:1,mesh:m}});
 let ball=BALLS[0];
 let shootT=0, toastT=0;
 function toast(msg){const e=$('toast');e.textContent=msg;e.hidden=false;toastT=1.8}
@@ -770,14 +797,16 @@ const nearestHoop=()=>{let best=HOOPS[0],bd=1e9;for(const H of HOOPS){const d=Ma
 function ballAction(){
   if(gun.held) return fire();
   if(ball.held) return startShot();
-  let nb=null,d=1e9; for(const B of BALLS){const dd=Math.hypot(B.p.x-avatar.position.x,B.p.z-avatar.position.z); if(dd<d&&B.p.y<2.4){d=dd;nb=B}}
-  if(nb&&d<1.6){ball=nb;ball.held=true;ball.hand=1;ball.v.set(0,0,0);if(mode!=='none')toggle(mode);toast('拿到球了！试试交叉、胯下、背后运球')}
+  if(BALLS[0].ai) return stealAction();
+  let nb=null,d=1e9; for(const B of BALLS){const dd=Math.hypot(B.p.x-avatar.position.x,B.p.z-avatar.position.z); if(dd<d&&B.p.y<2.4&&!B.ai){d=dd;nb=B}}
+  if(nb&&d<1.6&&matchLive()&&inGym()&&(MATCH.phase==='score'||MATCH.phase==='over')){toast('等一下，马上发球');return}
+  if(nb&&d<1.6){ball=nb;ball.held=true;ball.hand=1;ball.v.set(0,0,0);if(mode!=='none')toggle(mode);toast('拿到球了！试试交叉、胯下、背后运球');playerGrab(nb)}
   else toast('离球太远了（'+d.toFixed(1)+' 米），走近一点');
   updBallBtn();
 }
 function shoot(){ // long heave when far from both hoops
   const f=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));
-  ball.held=false; shootT=0.45; STATS.shots++; ball.pending=3; ball.isDunk=false;
+  ball.held=false; shootT=0.45; myShot(null); ball.pending=3; ball.by='me'; ball.isDunk=false;
   ball.p.set(avatar.position.x,1.9+py,avatar.position.z).addScaledVector(f,0.3);
   ball.v.copy(f).multiplyScalar(6.5); ball.v.y=5;
   toast('离篮筐太远，往篮筐走近点再投');
@@ -787,8 +816,8 @@ let exprT=0, pumpT=0;
 function smug(sec){exprT=Math.max(exprT,sec)}
 function celebrate(pts,dunk){
   smug(2.8); pumpT=1.3;
-  STATS.score++; STATS.points+=pts; if(pts===3) STATS.threes++; if(dunk) STATS.dunks++;
-  cheerT=2.6; refSignal={pts,t:1.6}; matchScored(pts,dunk);
+  STATS.score++; if(!MATCH.on) STATS.points+=pts; if(pts===3) STATS.threes++; if(dunk) STATS.dunks++;
+  cheerT=2.6; refSignal={pts,t:1.6}; addMoney(pts*10+(dunk?20:0));
   toast(dunk?(lastDunkStyle==='360'?'空中转体360°扣篮！ +2':'大风车扣篮！ +2'):lastLayup?'上篮得分！ +2':pts===3?'三分命中！ +3':'进球！ +2');
 }
 let act=null;
@@ -811,11 +840,12 @@ function startMove(type){
 }
 function releaseShot(H){
   const f={x:Math.sin(yaw),z:Math.cos(yaw)}, dist=rimDist(H);
-  ball.held=false; STATS.shots++; ball.pending=dist>6.75?3:2; ball.isDunk=false;
+  ball.held=false; myShot(H); ball.pending=dist>6.75?3:2; ball.by='me'; ball.isDunk=false;
   ball.p.set(avatar.position.x+f.x*0.18,py+2.32,avatar.position.z+f.z*0.18);
-  const err=0.02+0.012*dist, gx=(Math.random()+Math.random()-1)*err, gz=(Math.random()+Math.random()-1)*err;
+  const err=(0.02+0.012*dist)*contestMul(), gx=(Math.random()+Math.random()-1)*err, gz=(Math.random()+Math.random()-1)*err;
   const tx=H.rim.x+gx, ty=H.rim.y, tz=H.rim.z+gz, T=0.6+0.07*dist;
   ball.v.set((tx-ball.p.x)/T,(ty-ball.p.y)/T+0.5*G*T,(tz-ball.p.z)/T);
+  aiBlockMine('jump');
   updBallBtn();
 }
 function startDunk(){
@@ -854,9 +884,9 @@ function updateLayup(dt){
   if(a.stage==='air'){const u=Math.min(a.t/0.62,1), e=1-(1-u)*(1-u);
     avatar.position.x=lerp(a.start.x,a.D.x,e); avatar.position.z=lerp(a.start.z,a.D.z,e); py=0.62*Math.sin(u*Math.PI);
     if(!a.released&&u>=0.45){a.released=true; const hp=heldBallPos({x:Math.sin(yaw),z:Math.cos(yaw)},{x:-Math.cos(yaw),z:Math.sin(yaw)})||ball.p.clone();
-      ball.held=false; STATS.shots++; ball.pending=2; ball.isDunk=false; ball.p.copy(hp);
+      ball.held=false; myShot(a.H); ball.pending=2; ball.by='me'; ball.isDunk=false; ball.p.copy(hp);
       const err=0.03, tx=R.x+(Math.random()-0.5)*err*2, tz=R.z+(Math.random()-0.5)*err*2, Tf=0.5;
-      ball.v.set((tx-ball.p.x)/Tf,(R.y+0.02-ball.p.y)/Tf+0.5*G*Tf,(tz-ball.p.z)/Tf); updUI();}
+      ball.v.set((tx-ball.p.x)/Tf,(R.y+0.02-ball.p.y)/Tf+0.5*G*Tf,(tz-ball.p.z)/Tf); aiBlockMine('lay'); updUI();}
     if(u>=1){py=0;onGround=true;landSquash=0.8;act=null;}
     return true;}
   return true;
@@ -865,6 +895,9 @@ const DUNK_H=0.95, HANG_Y=0.8; let lastDunkStyle='360', lastLayup=false;
 function updateAct(dt){
   if(!act) return false;
   act.t+=dt;
+  if(act.type==='steal'){ const f={x:Math.sin(yaw),z:Math.cos(yaw)}; speed=0;
+    if(act.t<0.2){ const nx=avatar.position.x+f.x*2.4*dt, nz=avatar.position.z+f.z*2.4*dt; if(!blocked(nx,nz)){avatar.position.x=nx;avatar.position.z=nz;} }
+    if(!act.hit&&act.t>=0.16){act.hit=true; resolveSteal();} if(act.t>=act.dur) act=null; return true; }
   if(act.type==='hop'){ if(act.t>=0.11){vy=4.9;onGround=false;act=null} return false; }
   if(act.type==='punch'||act.type==='kick'){ speed=lerp(speed,0,1-Math.exp(-dt*14)); if(!act.hit&&act.t>=(act.type==='punch'?0.14:0.24)){act.hit=true; doStrike(act.type);} if(act.t>=act.dur) act=null; return true; }
   if(MOVES[act.type]){ if(act.t>=act.dur){ball.hand=-act.hand;ball.dph=0;act=null} return false; }
@@ -896,7 +929,7 @@ function updateAct(dt){
     }
     if(a.stage==='slam'){
       const u=Math.min(a.t/0.14,1); py=lerp(DUNK_H,HANG_Y,u);
-      if(u>=1){ball.held=false;STATS.shots++;ball.pending=2;ball.isDunk=true;ball.p.set(R.x,R.y+0.17,R.z);ball.v.set(0,-4.5,0);ball.prevY=ball.p.y;a.H.shake=1;a.H.kick=1;updBallBtn();a.stage='hang';a.t=0}
+      if(u>=1){ball.held=false;myShot(a.H);ball.pending=2;ball.by='me';ball.isDunk=true;ball.p.set(R.x,R.y+0.17,R.z);ball.v.set(0,-4.5,0);ball.prevY=ball.p.y;a.H.shake=1;a.H.kick=1;updBallBtn();a.stage='hang';a.t=0}
       return true;
     }
     if(a.stage==='hang'){ py=HANG_Y; if(a.t>=0.55){ if(a.style==='windmill'&&armR.sh.rotation.x>Math.PI) armR.sh.rotation.x-=Math.PI*2; act=null;onGround=false;vy=0.3} return true; }
@@ -934,14 +967,14 @@ function heldBallPos(f,rt){
 function updBallBtn(){ updUI(true); }
 let uiKey='';
 function updUI(force){
-  let nearBall=false; if(!ball.held&&!gun.held) for(const B of BALLS){ if(!B.held&&B.p.y<2.4&&Math.hypot(B.p.x-avatar.position.x,B.p.z-avatar.position.z)<1.6){nearBall=true;break} }
+  let nearBall=false; if(!ball.held&&!gun.held) for(const B of BALLS){ if(!B.held&&!B.ai&&B.p.y<2.4&&Math.hypot(B.p.x-avatar.position.x,B.p.z-avatar.position.z)<1.6){nearBall=true;break} }
   const nearGun=!gun.held&&!ball.held&&!!nearestPickup(avatar.position,'gun',2.2);
   const nearCar=car.in||(!ball.held&&!!nearestCar(3.4,true));
   const it=car.in?null:nearestInter(), useLbl=it?it.label:'';
-  const k=[ball.held,gun.held,nearBall,nearGun,mode,nearCar,car.in,useLbl].join('|'); if(k===uiKey&&!force) return; uiKey=k;
+  const dfd=defending(); const k=[ball.held,gun.held,nearBall,nearGun,mode,nearCar,car.in,useLbl,dfd].join('|'); if(k===uiKey&&!force) return; uiKey=k;
   const show=(id,on)=>{$(id).hidden=!on};
   show('bBall',ball.held||nearBall); $('bBall').textContent=ball.held?'投篮':'拿球'; $('bBall').classList.toggle('on',ball.held);
-  show('bLayup',ball.held); show('bDunk',ball.held);
+  show('bLayup',ball.held); show('bDunk',ball.held); show('bBlock',dfd); show('bSteal',dfd);
   show('bGun',gun.held||nearGun); $('bGun').textContent=gun.held?'放下枪':'拿枪'; $('bGun').classList.toggle('on',gun.held);
   show('bPunch',!ball.held&&!gun.held&&!car.in); show('bKick',!ball.held&&!car.in); show('bCar',nearCar); show('bUse',!!useLbl); $('bUse').textContent=useLbl; $('bCar').textContent=car.in?'下车':'上车';
   show('bWave',!ball.held&&!gun.held); show('bDance',!ball.held&&!gun.held); show('bFace',!gun.held);
@@ -961,6 +994,7 @@ function updateBall(dt,avVel){
       const rv=(C.v.x-A.v.x)*nx+(C.v.y-A.v.y)*ny+(C.v.z-A.v.z)*nz; if(rv<0){const k=-0.9*rv; A.v.x-=nx*k;A.v.y-=ny*k;A.v.z-=nz*k; C.v.x+=nx*k;C.v.y+=ny*k;C.v.z+=nz*k;}}}
 }
 function updateOneBall(B,dt,avVel,f,rt){
+  if(B.ai){ B.mesh.position.copy(B.p); B.mesh.rotation.x+=dt*7; return; }
   if(B.held){
     const prev=B.p.clone(); const hp=heldBallPos(f,rt);
     if(hp){B.p.copy(hp);}
@@ -991,7 +1025,7 @@ function updateOneBall(B,dt,avVel,f,rt){
         if(nd<BR+0.011){_n.divideScalar(nd||1); B.p.copy(_q).addScaledVector(_n,BR+0.011); const vn=B.v.dot(_n); if(vn<0) B.v.addScaledVector(_n,-(1.55)*vn);}
       }
       if(B.prevY>=R.y&&B.p.y<R.y&&Math.hypot(B.p.x-R.x,B.p.z-R.z)<R.r-0.02){
-        B.v.x*=0.25; B.v.z*=0.25; B.v.y*=0.6; H.kick=1; celebrate(B.pending||2,B.isDunk); B.pending=2; B.isDunk=false;
+        B.v.x*=0.25; B.v.z*=0.25; B.v.y*=0.6; H.kick=1; if(B.pending>0) scoreBasket(B,H); B.pending=0; B.by=null; B.isDunk=false;
       }
     }
     for(const o of obstacles){ if(B.p.y>3.5) continue; const dx=B.p.x-o.x, dz=B.p.z-o.z, d=Math.hypot(dx,dz);
@@ -1022,7 +1056,7 @@ function updateOneBall(B,dt,avVel,f,rt){
   B.mesh.position.copy(B.p);
 }
 function statusText(){
-  const sc='主队 '+STATS.points+' 分 · '+(car.in?'驾驶 · ':'')+(gun.kills?'击倒 '+gun.kills+' · ':'')+(gun.held?'持枪 · ':'');
+  const sc=(MATCH.on?myName()+' '+MATCH.me+':'+MATCH.ai+' 对手 · '+(MATCH.poss==='me'?'进攻 · ':'防守 · '):'得分 '+STATS.points+' · ')+(car.in?'驾驶 · ':'')+(gun.kills?'击倒 '+gun.kills+' · ':'')+(gun.held?'持枪 · ':'');
   if(act&&MOVES[act.type]) return sc+MOVE_NAMES[act.type];
   if(act&&act.type==='shot') return sc+'跳投';
   if(act&&act.type==='layup') return sc+'上篮';
@@ -1040,26 +1074,14 @@ const defenders=[11,33].map((num,i)=>{const n=makeNPC({shirt:0x1f3f8f,pants:0x1f
    const sl=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.043,0.27,12),new THREE.MeshStandardMaterial({color:0x111111,roughness:.8})); sl.position.y=-0.15; n.aR.sh.add(sl);
    const beard=new THREE.Mesh(new THREE.SphereGeometry(1,14,10,0,Math.PI*2,Math.PI*0.45,Math.PI*0.55),new THREE.MeshStandardMaterial({color:0x151515,roughness:.95})); beard.scale.set(0.09,0.1,0.098); beard.position.set(0,0.005,0.006); if(!i) n.head.add(beard);
    n.head.traverse(m=>{if(m.isMesh)m.castShadow=true});} n.g.rotation.order='YXZ'; n.g.position.set(i?-3:3,0,-4); n.def=true; return n});
+function benchIdle(d,i,dt){ const p=d.g.position, tx=-12.6, tz=i?-9:9, dist=Math.hypot(tx-p.x,tz-p.z); p.y=0;
+  if(dist>0.25){ const st=Math.min(dist,2.6*dt); p.x+=(tx-p.x)/dist*st; p.z+=(tz-p.z)/dist*st; d.g.rotation.y=Math.atan2(tx-p.x,tz-p.z); runPose(d,dt,2.6); }
+  else { d.g.rotation.y=Math.PI/2; npcPose(d,{}); } }
 function updateDefenders(dt){
-  defenders.forEach((d,i)=>{ if(d.hiding||d.seekAI){ npcAI(d,dt); return; } if(!defenseOn){ if(!npcAI(d,dt)) npcPose(d,{}); return; }
-    if(npcAI(d,dt)) return;
-    const H=nearestHoop(), ax=avatar.position.x, az=avatar.position.z;
-    let hx=H.rim.x-ax, hz=H.rim.z-az; const hl=Math.hypot(hx,hz)||1; hx/=hl; hz/=hl;
-    let tx,tz;
-    if(ball.held||act){ const dd=i?2.8:1.15; tx=ax+hx*dd+(i?-hz*1.4:0); tz=az+hz*dd+(i?hx*1.4:0); }
-    else { tx=H.rim.x-hx*(2.2+i*1.8)+(i?1.2:-1.2); tz=H.rim.z-hz*(2.2+i*1.8); }
-    tx=Math.max(-7.2,Math.min(7.2,tx)); tz=Math.max(-13.6,Math.min(13.6,tz));
-    let dx=tx-d.g.position.x, dz=tz-d.g.position.z; const dist=Math.hypot(dx,dz);
-    const sp=Math.min(3.4,dist*3), st=Math.min(dist,sp*dt);
-    if(dist>1e-3){d.g.position.x+=dx/dist*st; d.g.position.z+=dz/dist*st;}
-    const ad=Math.hypot(d.g.position.x-ax,d.g.position.z-az); if(ad<0.75&&ad>0){d.g.position.x=ax+(d.g.position.x-ax)/ad*0.75; d.g.position.z=az+(d.g.position.z-az)/ad*0.75;}
-    d.g.rotation.y=Math.atan2(ax-d.g.position.x,az-d.g.position.z);
-    d.phase+=dt*sp*5; const sh=Math.sin(d.phase)*Math.min(1,sp/2)*0.25;
-    const contest=act&&act.type==='shot'&&ad<3;
-    d.g.position.y=contest?Math.max(0,Math.sin(Math.min(1,act.t/0.7)*Math.PI))*0.35:0;
-    npcPose(d,contest?{lSh:-2.9,rSh:-2.9,lShZ:.15,rShZ:-.15,lEl:-.1,rEl:-.1,lTh:-.1,rTh:-.1}:
-      {hipY:.8,lTh:-.5+sh,rTh:-.5-sh,lKn:.75,rKn:.75,spX:.28,lSh:-.5,rSh:-.5,lShZ:1.0,rShZ:-1.0,lEl:-.3,rEl:-.3,hX:-.2});
-    // keep the feet on the floor when crouched: thighs+knees bent lower the hips
+  defenders.forEach((d,i)=>{ if(d.hiding||d.seekAI){ npcAI(d,dt); return; }
+    if(npcAI(d,dt)){ if(i===0&&ball.ai){ ball.ai=false; ball.v.set(0,1.5,0); MATCH.aist=null; } return; }
+    if(!defenseOn||i===1||HS.role){ benchIdle(d,i,dt); return; }
+    updateOpp(dt);
   });
 }
 // ---------- the gun ----------
@@ -1243,7 +1265,11 @@ function updateCombat(dt){
 }
 
 // ---------- outside world: road, houses, car, weapon pickups ----------
-const PICKUPS=[], HOUSES=[];
+const PICKUPS=[], HOUSES=[], PLACES=[];
+function signTex(txt,bg){ return canvasTex(512,128,g=>{ g.fillStyle=bg; g.fillRect(0,0,512,128); g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=6; g.strokeRect(5,5,502,118);
+  let px=72; g.font='bold '+px+'px sans-serif'; while(g.measureText(txt).width>470&&px>24){ px-=4; g.font='bold '+px+'px sans-serif'; }
+  g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(txt,256,68); }); }
+function labelSprite(txt,bg,w,h){ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:signTex(txt,bg),fog:false})); sp.scale.set(w,h,1); return sp; }
 const ringCol={gun:0xffb020,ammo:0x3ccf5a,scope:0x5fb3ff};
 function spawnPickup(type,x,z,o={}){
   const g=new THREE.Group(); let m;
@@ -1276,7 +1302,7 @@ function nearestPickup(pos,type,maxd,arenaOnly){ let best=null,bd=maxd; for(cons
   RECTS.push({x0:ARENA.x0-0.15,x1:ARENA.x0+0.15,z0:ARENA.z0,z1:ARENA.z1,h:4.2},{x0:ARENA.x1-0.15,x1:ARENA.x1+0.15,z0:ARENA.z0,z1:ARENA.z1,h:4.2},
     {x0:ARENA.x0,x1:ARENA.x1,z0:ARENA.z0-0.15,z1:ARENA.z0+0.15,h:4.2},{x0:ARENA.x0,x1:8,z0:ARENA.z1-0.15,z1:ARENA.z1+0.15,h:4.2},{x0:12,x1:ARENA.x1,z0:ARENA.z1-0.15,z1:ARENA.z1+0.15,h:4.2});
   // houses
-  function house(cx,cz,w,d,door,col){
+  function house(cx,cz,w,d,door,col,o={}){
     const H=3.2,T=0.22, mat=stdMat(col,{roughness:.9});
     const wall=(x0,x1,z0,z1,y0=0,h=H)=>{boxAt(x1-x0,h,z1-z0,mat,(x0+x1)/2,y0+h/2,(z0+z1)/2); if(y0===0) RECTS.push({x0,x1,z0,z1,h});};
     const X0=cx-w/2,X1=cx+w/2,Z0=cz-d/2,Z1=cz+d/2, dw=1.9;
@@ -1289,24 +1315,59 @@ function nearestPickup(pos,type,maxd,arenaOnly){ let best=null,bd=maxd; for(cons
     const win=new THREE.MeshStandardMaterial({color:0x9cc7e6,roughness:.2,metalness:.3});
     for(const s of [-1,1]){ const wm=new THREE.Mesh(new THREE.BoxGeometry(1.1,.9,.05),win); wm.position.set(cx+s*w/4,1.7,Z1+T/2+.01); scene.add(wm); }
     boxAt(1.2,.75,.7,stdMat(0x5b4030),cx,.375,Z1-1.0); RECTS.push({x0:cx-.6,x1:cx+.6,z0:Z1-1.35,z1:Z1-.65,h:.75});
+    const hs={table:{x:cx,z:Z1-1.0},bed:null,ward:null,interior:{x0:X0+0.2,x1:X1-0.2,z0:Z0+0.2,z1:Z1-0.2},name:o.name||'',shop:o.shop||null,shopLabel:o.shopLabel||'',counter:[]};
     // bed
     const bx=door==='x'?X1-0.9:X0+0.9, bz=door==='z'?cz+0.2:Z0+1.4, wood=stdMat(0x6b4a32,{roughness:.8});
+    if(o.bed!==false){
     boxAt(1.4,.35,2.0,wood,bx,.175,bz); boxAt(1.3,.18,1.9,stdMat(0xf4f1ea),bx,.44,bz); boxAt(1.34,.07,1.15,stdMat([0x4f7cc9,0xc96f8f,0x6aa36f,0xd9a24a][HOUSES.length%4]),bx,.56,bz-0.35);
-    boxAt(.9,.12,.35,stdMat(0xffffff),bx,.58,bz+0.72); boxAt(1.4,.7,.1,wood,bx,.55,bz+1.0); RECTS.push({x0:bx-.7,x1:bx+.7,z0:bz-1,z1:bz+1.05,h:.6});
-    // wardrobe
+    boxAt(.9,.12,.35,stdMat(0xffffff),bx,.58,bz+0.72); boxAt(1.4,.7,.1,wood,bx,.55,bz+1.0); RECTS.push({x0:bx-.7,x1:bx+.7,z0:bz-1,z1:bz+1.05,h:.6}); hs.bed={x:bx,z:bz}; }
+    // wardrobe: where the clothes you bought are kept
     const wx=door==='X'?X0+0.35:X1-0.35, wz=door==='z'?cz+0.3:cz+1.2;
+    if(o.ward){
     boxAt(.6,2.0,1.2,stdMat(0x7b5a3c,{roughness:.7}),wx,1.0,wz); boxAt(.62,1.9,.02,stdMat(0x3a2a1c),wx,1.0,wz); RECTS.push({x0:wx-.3,x1:wx+.3,z0:wz-.6,z1:wz+.6,h:2});
-    const spot=door==='z'?{x:cx+1.6,z:cz-0.7,ry:Math.PI}:door==='X'?{x:cx+0.4,z:cz+0.6,ry:Math.PI/2}:{x:cx-0.4,z:cz+0.6,ry:-Math.PI/2};
-    const hs={table:{x:cx,z:Z1-1.0},bed:{x:bx,z:bz},ward:{x:wx+(door==='X'?0.7:-0.7),z:wz},spot,interior:{x0:X0+0.2,x1:X1-0.2,z0:Z0+0.2,z1:Z1-0.2}};
+    hs.ward={x:wx+(door==='X'?0.7:-0.7),z:wz}; const wl=labelSprite('衣柜（换装）','#13896b',1.7,.42); wl.position.set(wx,2.45,wz); scene.add(wl); }
+    hs.spot=door==='z'?{x:cx+1.6,z:cz-0.7,ry:Math.PI}:door==='X'?{x:cx+0.4,z:cz+0.6,ry:Math.PI/2}:{x:cx-0.4,z:cz+0.6,ry:-Math.PI/2};
+    // local frame: fw points from the door into the house, lt runs along the front wall
+    const fw=door==='z'?{x:0,z:1}:door==='x'?{x:1,z:0}:{x:-1,z:0}, lt={x:fw.z,z:fw.x}, lh=door==='z'?w/2:d/2, dh=door==='z'?d/2:w/2;
+    const L=(u,v)=>({x:cx+lt.x*u+fw.x*v,z:cz+lt.z*u+fw.z*v});
+    const boxL=(a,h,b,m,u,y,v,col)=>{ const q=L(u,v), sx=door==='z'?a:b, sz=door==='z'?b:a; boxAt(sx,h,sz,m,q.x,y,q.z); if(col) RECTS.push({x0:q.x-sx/2,x1:q.x+sx/2,z0:q.z-sz/2,z1:q.z+sz/2,h:y+h/2}); return q; };
+    const faceOut=Math.atan2(-fw.x,-fw.z);
+    if(o.kind==='clothes'){ const metal=stdMat(0xb8bcc2,{metalness:.6,roughness:.35}), cols=[0xc8312f,0x1f4fb0,0xd9a82a,0xe58aa8,0x2a2c31,0x8d9299,0x56603c,0xf4f4f2];
+      for(const sd of [-1,1]){ const u=sd*(lh-0.7);
+        for(const v of [-1.4,1.4]) boxL(.06,1.7,.06,metal,u,.85,v,false);
+        boxL(.04,.04,2.9,metal,u,1.68,0,false);
+        for(let k=0;k<6;k++) boxL(.46,.62,.05,stdMat(cols[(k+(sd>0?3:0))%cols.length],{roughness:.9}),u,1.3,-1.15+k*0.46,false);
+        const q=L(u,0), sx=door==='z'?.6:3, sz=door==='z'?3:.6; RECTS.push({x0:q.x-sx/2,x1:q.x+sx/2,z0:q.z-sz/2,z1:q.z+sz/2,h:1.7}); } }
+    if(o.kind==='guns'){ const board=boxL(2.6,1.0,.05,stdMat(0x5b4030,{roughness:.8}),0,1.75,dh-0.16,false);
+      for(let k=0;k<4;k++){ const q=L(-0.9+k*0.6,dh-0.22), pg=makePistol(); pg.scale.setScalar(1.8); pg.rotation.y=Math.atan2(lt.x,lt.z); pg.position.set(q.x,1.7,q.z); scene.add(pg); }
+      for(const sd of [-1,1]){ const u=sd*(lh-0.55); boxL(.6,.9,2.2,stdMat(0x2c3440,{roughness:.6}),u,.45,0,true); hs.counter.push(L(u,-0.55),L(u,0.55)); } }
+    if(o.kind==='ammo'){ const crate=stdMat(0x5a6b3a,{roughness:.85});
+      for(const u of [-lh+0.6,-lh+1.5]){ boxL(.8,.6,.8,crate,u,.3,dh-0.6,true); boxL(.8,.6,.8,crate,u,.9,dh-0.6,false); RECTS[RECTS.length-1].h=1.2; hs.counter.push(L(u,dh-0.6)); }
+      boxL(.8,.6,.8,crate,-lh+0.6,.3,dh-1.5,true); }
+    if(o.kind==='cars'){ const q=L(0,dh-0.13);
+      const ptx=canvasTex(512,256,g=>{g.fillStyle='#1b2330';g.fillRect(0,0,512,256);g.fillStyle='#f2c14e';g.beginPath();g.moveTo(90,170);g.lineTo(140,120);g.lineTo(330,115);g.lineTo(400,150);g.lineTo(430,170);g.closePath();g.fill();g.fillStyle='#111';for(const x of [160,370]){g.beginPath();g.arc(x,175,26,0,7);g.fill();}
+        g.fillStyle='#fff';g.font='bold 40px sans-serif';g.textAlign='center';g.fillText('新车到店',256,60);g.font='24px sans-serif';g.fillText('跑车 $30000 · 越野 $20000 · 皮卡 $10000',256,232);});
+      const pm=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1.2),new THREE.MeshStandardMaterial({map:ptx,roughness:.8})); pm.position.set(q.x,1.8,q.z); pm.rotation.y=faceOut; scene.add(pm); }
+    if(o.name){ const front=L(0,-dh-T/2-0.04), tx=signTex(o.name,o.sign||'#1f3f8f');
+      const sg=new THREE.Mesh(new THREE.PlaneGeometry(3.0,.75),new THREE.MeshBasicMaterial({map:tx})); sg.position.set(front.x,2.8,front.z); sg.rotation.y=faceOut; scene.add(sg);
+      const top=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,fog:false})); top.scale.set(4.6,1.15,1); top.position.set(cx,H+3.3,cz); scene.add(top);
+      PLACES.push({name:o.name,desc:o.desc||'',x:cx,z:cz,col:o.sign}); }
     HOUSES.push(hs); return hs;
   }
-  const h1=house(-24,35,8,6,'z',0xd9c7a3), h2=house(0,36,9,6,'z',0xb9cfd9), h3=house(24,35,8,6,'z',0xe0b8a0), h4=house(30,8,6,8,'x',0xc9d9b9), h5=house(-44,35,8,6,'z',0xe6d2b5), h6=house(44,35,8,6,'z',0xbfd3e6), h7=house(-30,-8,6,8,'X',0xd8c3e0), h8=house(30,-12,6,8,'x',0xe8d7a8);
-  spawnPickup('gun',h1.table.x-.3,h1.table.z,{y:.8,ammo:30}); spawnPickup('ammo',h1.table.x+.35,h1.table.z,{y:.76});
-  spawnPickup('scope',h2.table.x-.3,h2.table.z,{y:.76}); spawnPickup('ammo',h2.table.x+.35,h2.table.z,{y:.76});
-  spawnPickup('gun',h3.table.x-.3,h3.table.z,{y:.8,ammo:30}); spawnPickup('ammo',h3.table.x+.35,h3.table.z,{y:.76});
-  spawnPickup('ammo',h4.table.x-.3,h4.table.z,{y:.76}); spawnPickup('scope',h4.table.x+.35,h4.table.z,{y:.76});
-  spawnPickup('gun',h5.table.x-.3,h5.table.z,{y:.8,ammo:30}); spawnPickup('ammo',h5.table.x+.35,h5.table.z,{y:.76}); spawnPickup('scope',h6.table.x-.3,h6.table.z,{y:.76}); spawnPickup('ammo',h6.table.x+.35,h6.table.z,{y:.76});
-  spawnPickup('ammo',h7.table.x,h7.table.z,{y:.76}); spawnPickup('gun',h8.table.x,h8.table.z,{y:.8,ammo:30});
+  const h1=house(-24,35,8,6,'z',0xd9c7a3,{name:'车行',sign:'#e2541b',kind:'cars',bed:false,shop:'dealer',shopLabel:'买车',desc:'买车；旁边空地上是展车'}),
+        h2=house(0,36,9,6,'z',0xb9cfd9,{name:'服装店',sign:'#c2477a',kind:'clothes',bed:false,shop:'shop',shopLabel:'买衣服',desc:'买上衣、裤子、套装（店员小美）'}),
+        h3=house(24,35,8,6,'z',0xe0b8a0,{name:'枪店',sign:'#3a3d44',kind:'guns',bed:false,shop:'gunshop',shopLabel:'买枪',desc:'枪和瞄准镜，柜台上的可以直接拿'}),
+        h4=house(30,8,6,8,'x',0xc9d9b9,{name:'子弹库',sign:'#4a6a2a',kind:'ammo',bed:false,shop:'ammoshop',shopLabel:'买子弹',desc:'弹药箱，走过去自动捡'}),
+        h5=house(-44,35,8,6,'z',0xe6d2b5,{name:'小雪家',sign:'#6f93c4',desc:'邻居小雪住这里'}),
+        h6=house(44,35,8,6,'z',0xbfd3e6,{name:'休息屋',sign:'#4f7cc9',desc:'有床，睡一觉体力回满'}),
+        h7=house(-30,-8,6,8,'X',0xd8c3e0,{name:'丽丽家',sign:'#b8562a',desc:'邻居丽丽住这里'}),
+        h8=house(30,-12,6,8,'x',0xe8d7a8,{name:'我的家 · 衣柜',sign:'#13896b',kind:'home',ward:true,desc:'衣柜：买的衣服都存在这里，可以换装；床：睡觉回体力'});
+  PLACES.push({name:'篮球场（1对1 比赛）',desc:'比赛用北边篮筐',x:0,z:-6,col:'#b02a28'},{name:'车行展车',desc:'车行门口的空地，走到车边按「买车」',x:-12,z:35.5,col:'#e2541b'});
+  // 枪店: guns and scopes on the table and the two counters; 子弹库: ammo on the table and on the crates
+  spawnPickup('gun',h3.table.x-.3,h3.table.z,{y:.8,ammo:30}); spawnPickup('scope',h3.table.x+.35,h3.table.z,{y:.76});
+  spawnPickup('gun',h3.counter[0].x,h3.counter[0].z,{y:.95,ammo:30}); spawnPickup('gun',h3.counter[2].x,h3.counter[2].z,{y:.95,ammo:30}); spawnPickup('scope',h3.counter[3].x,h3.counter[3].z,{y:.91});
+  spawnPickup('ammo',h4.table.x-.35,h4.table.z,{y:.76}); spawnPickup('ammo',h4.table.x+.35,h4.table.z,{y:.76});
+  for(const c of h4.counter) spawnPickup('ammo',c.x,c.z,{y:1.22});
   spawnPickup('ammo',2,24.5); spawnPickup('ammo',-30,27.5);
   // inside the arena: the table gun plus two weapon crates
   spawnPickup('gun',gun.stand.x,gun.stand.z,{y:.8,ammo:30});
@@ -1599,16 +1660,176 @@ function setGuestLook(){
   avatar.traverse(o=>{ if(o.isMesh) o.visible=true; }); head.traverse(m=>{ if(m.isMesh&&(m.material.map||m.material.vertexColors)) m.visible=false; });
   shells.forEach(s=>scene.remove(s)); shells=[]; applyOutfit();
 }
-// ---------- the match: first to 21 wins money ----------
-STATS.guest=0; let guestT=30;
-function updateMatch(dt){
-  if(HS.role) return;
-  guestT-=dt; if(guestT<=0){ guestT=22+Math.random()*16; STATS.guest+=2; if(STATS.guest>=21){ toast('客队拿下了这场比赛，你输了'); STATS.points=0; STATS.guest=0; setTimeout(()=>startHider('ai'),1200); } }
+// ---------- the match: 1-on-1, first to 21; one attacks, one defends ----------
+const opp=defenders[0], OPP_NAME='对手 11号';
+let blockT=0, stealCd=0, stunT=0;
+function myName(){ return (MP&&MP.myName)||'我'; }
+function inGym(){ return !car.in&&Math.abs(avatar.position.x)<ARENA.x1-0.3&&avatar.position.z>ARENA.z0+0.3&&avatar.position.z<ARENA.z1-0.3; }
+function matchLive(){ return MATCH.on&&!HS.role&&MATCH.phase!=='over'; }
+function defending(){ return MATCH.ready&&matchLive()&&inGym()&&!ball.held&&!gun.held&&(ball.ai||MATCH.poss==='ai'); }
+function hd(x,z){ return Math.hypot(x-MH.rim.x,z-MH.rim.z); }
+function matchMsg(txt,show){ MATCH.last=txt; if(show!==false) toast(txt); }
+function myShot(H){ STATS.shots++; MATCH.react=0.45; if(matchLive()&&inGym()&&H===MH) MATCH.shots++; }
+function contestMul(){ if(!matchLive()||!defenseOn||!inGym()||opp.down>0||opp.hiding||opp.seekAI) return 1; const d=Math.hypot(opp.g.position.x-avatar.position.x,opp.g.position.z-avatar.position.z); return d<1.1?2.6:d<2?1.6:1; }
+function newGame(){ MATCH.me=0; MATCH.ai=0; MATCH.made=0; MATCH.shots=0; MATCH.blk=0; MATCH.stl=0; STATS.points=0; STATS.guest=0; newPossession('me','新的一场 1 对 1：先到 21 分赢，你先进攻'); }
+function placeOpp(who){ const O=opp.g.position; O.y=0;
+  if(who==='ai'){ O.set(CHECK.x,0,CHECK.z); opp.g.rotation.y=Math.atan2(MH.rim.x-CHECK.x,MH.rim.z-CHECK.z); }
+  else { O.set(CHECK.x,0,CHECK.z-MH.dir*1.3); opp.g.rotation.y=Math.atan2(0,MH.dir); } }
+function newPossession(who,msg){
+  MATCH.poss=who; MATCH.clear=false; MATCH.phase='check'; MATCH.t=1.2; MATCH.aist=null; MATCH.outT=0; MATCH.react=0;
+  const B=BALLS[0]; ball=B; B.pending=0; B.by=null; B.isDunk=false; B.v.set(0,0,0);
+  placeOpp(who);
+  if(!inGym()){ B.ai=who==='ai'; B.held=false; if(!B.ai) B.p.set(CHECK.x,BR,CHECK.z); matchMsg(msg||'',false); return; }
+  if(gun.held) gunAction(); act=null; standUp(); if(mode!=='none') toggle(mode); py=0; vy=0; onGround=true; speed=0;
+  if(who==='me'){ avatar.position.set(CHECK.x,0,CHECK.z); yaw=Math.atan2(MH.rim.x-CHECK.x,MH.rim.z-CHECK.z); camYaw=yaw+Math.PI; B.ai=false; B.held=true; B.hand=1; }
+  else { avatar.position.set(CHECK.x,0,CHECK.z-MH.dir*1.4); yaw=Math.atan2(0,MH.dir); camYaw=yaw+Math.PI; B.held=false; B.ai=true; }
+  if(msg) matchMsg(msg); updUI(true);
 }
-function matchScored(pts,dunk){
-  addMoney(pts*10+(dunk?20:0));
-  if(STATS.points>=21){ STATS.points=0; STATS.guest=0; guestT=30; cheerT=4; addMoney(HS.R); setTimeout(()=>toast('🏆 赢下比赛！奖金 $'+HS.R+'，再找到躲起来的对手就变 10 倍'),900);
-    if(!HS.role){ if(MP.peers.size){ pushEv({k:'win'}); startSeeker('mp'); } else startSeeker('ai'); } }
+function matchWin(){ MATCH.phase='over'; MATCH.t=4.5; MATCH.wins++; cheerT=4; addMoney(HS.R);
+  matchMsg('🏆 '+myName()+' '+MATCH.me+' : '+MATCH.ai+' 赢下比赛！奖金 $'+HS.R);
+  setTimeout(()=>{ if(!HS.role&&MATCH.on){ toast('再找到躲起来的对手，奖金变 10 倍'); if(MP.peers.size){ pushEv({k:'win'}); startSeeker('mp'); } else startSeeker('ai'); } },2600); }
+function matchLose(){ MATCH.phase='over'; MATCH.t=4.5; MATCH.losses++;
+  matchMsg(OPP_NAME+' '+MATCH.ai+' : '+MATCH.me+' 赢了这场，你输了');
+  setTimeout(()=>{ if(!HS.role&&MATCH.on) startHider('ai'); },2600); }
+// every ball that drops through a rim comes here exactly once (pending is cleared right after)
+function scoreBasket(B,H){
+  const pts=B.pending, by=B.by, dunk=B.isDunk;
+  if(matchLive()&&inGym()&&H===MH&&(by==='me'||by==='ai')){
+    if(MATCH.phase==='score') return;
+    MATCH.next=by==='me'?'ai':'me';
+    if(MATCH.clear&&MATCH.poss===by){ MATCH.phase='score'; MATCH.t=1.4; matchMsg(by==='me'?'没先清球（带出三分线），这球不算！球权给对手':OPP_NAME+' 没清球，这球不算，球权给你'); return; }
+    if(by==='me'){ MATCH.me+=pts; MATCH.made++; celebrate(pts,dunk); MATCH.last=myName()+' '+(dunk?'扣篮得分':pts===3?'三分命中':'进球')+' +'+pts+'   （'+MATCH.me+' : '+MATCH.ai+'）'; }
+    else { MATCH.ai+=pts; refSignal={pts,t:1.6}; matchMsg(OPP_NAME+' '+(pts===3?'三分命中':'进球')+' +'+pts+'   （'+MATCH.me+' : '+MATCH.ai+'）'); }
+    STATS.points=MATCH.me; STATS.guest=MATCH.ai;
+    if(MATCH.me>=21) return matchWin();
+    if(MATCH.ai>=21) return matchLose();
+    MATCH.phase='score'; MATCH.t=1.2; return;
+  }
+  if(by!=='me') return;
+  if(matchLive()&&inGym()&&H!==MH){ toast('比赛用的是北边篮筐，这个篮筐进球不计分'); return; }
+  celebrate(pts,dunk);
+}
+function swatBall(from,msg,by){ const B=ball; B.ai=false; B.held=false; B.pending=0; B.by=null; B.isDunk=false; MATCH.aist&&(MATCH.aist.shot=null);
+  let dx=B.p.x-from.x, dz=B.p.z-from.z; const l=Math.hypot(dx,dz)||1; B.v.set(dx/l*3.6+(Math.random()-0.5)*1.4,1.6,dz/l*3.6+(Math.random()-0.5)*1.4);
+  if(by==='me'){ MATCH.blk++; cheerT=2.2; smug(2); } sfx(220,0.12,1); MATCH.react=0.5; matchMsg(msg); updUI(true); }
+function aiBlockMine(kind){ if(!matchLive()||!inGym()||!defenseOn||opp.down>0||opp.hiding||opp.seekAI) return false;
+  const d=Math.hypot(opp.g.position.x-avatar.position.x,opp.g.position.z-avatar.position.z); if(d>1.25) return false;
+  if(Math.random()<(kind==='lay'?0.3:0.2)){ swatBall(opp.g.position,'被 '+OPP_NAME+' 盖帽了！','ai'); return true; } return false; }
+function playerGrab(B){ B.pending=0; B.by=null; if(!matchLive()||!inGym()) return;
+  if(MATCH.poss==='ai'){ MATCH.poss='me'; MATCH.clear=true; MATCH.aist=null; matchMsg('你抢到篮板！先把球带出三分线（清球）再进攻'); }
+  else matchMsg('你抢到前场篮板，可以直接进攻', false); }
+function aiGrab(){ const prev=MATCH.poss; ball.ai=true; ball.held=false; ball.pending=0; ball.by=null; ball.v.set(0,0,0); MATCH.aist=null;
+  if(prev==='me'){ MATCH.poss='ai'; MATCH.clear=true; matchMsg(OPP_NAME+' 抢到篮板，你来防守（他得先清球）'); } else { MATCH.clear=false; matchMsg(OPP_NAME+' 抢到前场篮板'); } updUI(true); }
+function aiSteal(){ ball.held=false; ball.ai=true; ball.pending=0; ball.by=null; MATCH.poss='ai'; MATCH.clear=true; MATCH.aist=null; act=null; sfx(700,0.08,0.8); matchMsg('被 '+OPP_NAME+' 抢断了！快回防'); updUI(true); }
+function blockJump(){ if(!defending()){ jump(); return; } if(!onGround||act||ball.held) return; if(stance!=='stand') standUp(); vy=5.4; onGround=false; blockT=0.8; }
+function stealAction(){ if(!defending()) return; if(stealCd>0||act||ball.held||!onGround) return; if(stance!=='stand') standUp(); if(mode!=='none') toggle(mode);
+  const O=opp.g.position; yaw=Math.atan2(O.x-avatar.position.x,O.z-avatar.position.z); act={type:'steal',t:0,dur:0.42,hit:false}; stealCd=1.1; }
+function resolveSteal(){ const O=opp.g.position, d=Math.hypot(O.x-avatar.position.x,O.z-avatar.position.z);
+  if(!ball.ai){ toast('对手手里没球，等他运球时再抢'); return; }
+  if(d>1.7){ toast('离对手太远（'+d.toFixed(1)+' 米），贴近一点再抢断'); return; }
+  const s=MATCH.aist; let p=d<1.0?0.42:0.28; if(s&&s.shot) p=0.22; if(s&&s.juke>0) p*=0.5;
+  if(Math.random()<p){ O.y=0; MATCH.aist=null; ball.ai=false; ball.held=true; ball.hand=1; ball.pending=0; ball.by=null; ball=BALLS[0];
+    MATCH.poss='me'; MATCH.clear=true; MATCH.stl++; cheerT=2; smug(2); sfx(700,0.08,1); matchMsg('抢断成功！先把球带出三分线（清球）再进攻'); updUI(true); }
+  else { if(s) s.burst=1.0; stunT=0.6; matchMsg(OPP_NAME+' 护住了球，趁机突破！'); } }
+function moveOpp(tx,tz,sp,dt,half){ const p=opp.g.position; const dx=tx-p.x, dz=tz-p.z, d=Math.hypot(dx,dz); let mv=0;
+  if(d>1e-3){ mv=Math.min(d,sp*dt); p.x+=dx/d*mv; p.z+=dz/d*mv; }
+  p.x=Math.max(-7.3,Math.min(7.3,p.x)); p.z=half?Math.max(MH.rim.z-1.2,Math.min(-0.4,p.z)):Math.max(-13.7,Math.min(13.7,p.z));
+  const ax=avatar.position.x, az=avatar.position.z, ad=Math.hypot(p.x-ax,p.z-az); if(ad<0.72&&ad>1e-4){ p.x=ax+(p.x-ax)/ad*0.72; p.z=az+(p.z-az)/ad*0.72; }
+  return dt>0?mv/dt:0; }
+function aiHold(){ const p=opp.g.position; p.y=0; opp.g.rotation.y=Math.atan2(MH.rim.x-p.x,MH.rim.z-p.z); const f={x:Math.sin(opp.g.rotation.y),z:Math.cos(opp.g.rotation.y)};
+  ball.p.set(p.x+f.x*0.32,1.05,p.z+f.z*0.32); npcPose(opp,{lSh:-1.0,rSh:-1.0,lEl:-1.0,rEl:-1.0,lShZ:.25,rShZ:-.25}); }
+function startAIShot(type){ const s=MATCH.aist; s.shot={type,t:0,rel:false}; }
+function aiRelease(type){
+  const O=opp.g.position, R=MH.rim, ap=avatar.position, d=hd(O.x,O.z), dP=Math.hypot(ap.x-O.x,ap.z-O.z);
+  ball.ai=false; ball.held=false;
+  if(blockT>0&&py>0.12&&dP<1.7){ const pb=dP<1.0?0.85:dP<1.35?0.6:0.35; if(Math.random()<pb){ swatBall(ap,'盖帽！'+myName()+' 把 '+OPP_NAME+' 的投篮扇飞了','me'); return; } }
+  let p=type==='lay'?0.7:d>6.75?0.38:0.52; if(dP<1.1) p*=0.6; else if(dP<2) p*=0.82;
+  const make=Math.random()<p, a=Math.random()*Math.PI*2, off=make?Math.random()*0.03:0.26+Math.random()*0.06;
+  const tx=R.x+Math.cos(a)*off, tz=R.z+Math.sin(a)*off, T=type==='lay'?0.45:0.6+0.07*d;
+  ball.v.set((tx-ball.p.x)/T,(R.y-ball.p.y)/T+0.5*G*T,(tz-ball.p.z)/T);
+  ball.by='ai'; ball.pending=d>6.75?3:2; ball.isDunk=false; MATCH.react=0.35;
+}
+function aiOffense(dt){
+  const O=opp.g.position, R=MH.rim, ap=avatar.position; let s=MATCH.aist;
+  if(!s){ const r=Math.random(); s=MATCH.aist={plan:r<0.4?'drive':r<0.72?'mid':'three',ang:(Math.random()-0.5)*2.2,t:0,juke:0,jdir:1,burst:0,ph:0,shot:null}; }
+  s.t+=dt; s.burst=Math.max(0,s.burst-dt); s.juke=Math.max(0,s.juke-dt);
+  if(s.shot){ const sh=s.shot; sh.t+=dt; const lay=sh.type==='lay', rel=lay?0.3:0.5, end=lay?0.75:0.95, jt=lay?0.1:0.28;
+    if(lay&&sh.t<rel) moveOpp(R.x,R.z+MH.dir*0.6,2.2,dt,true);
+    opp.g.rotation.y=Math.atan2(R.x-O.x,R.z-O.z); const f={x:Math.sin(opp.g.rotation.y),z:Math.cos(opp.g.rotation.y)};
+    const jy=sh.t>jt?Math.max(0,Math.sin(Math.min(1,(sh.t-jt)/(end-jt))*Math.PI))*(lay?0.55:0.42):0; O.y=jy;
+    npcPose(opp,sh.t<jt?{hipY:.82,lKn:.7,rKn:.7,lTh:-.5,rTh:-.5,lSh:-1.2,rSh:-1.2,lEl:-1.2,rEl:-1.2}:{lSh:-2.9,rSh:-2.9,lShZ:.15,rShZ:-.15,lEl:-.4,rEl:-.4,lTh:-.2,rTh:-.1,lKn:.3,rKn:.2});
+    if(!sh.rel&&ball.ai){ ball.p.set(O.x+f.x*0.2,jy+(sh.t<jt?1.25:2.3),O.z+f.z*0.2); if(sh.t>=rel){ sh.rel=true; aiRelease(sh.type); } }
+    if(sh.t>=end){ O.y=0; s.shot=null; if(!ball.ai) MATCH.aist=null; }
+    return;
+  }
+  if(!ball.ai) return;
+  const dR=hd(O.x,O.z); let tx,tz,spd=3.0;
+  if(MATCH.clear){ const a=Math.atan2(O.x-R.x,(O.z-R.z)*MH.dir); tx=R.x+Math.sin(a)*7.7; tz=R.z+MH.dir*Math.cos(a)*7.7;
+    if(dR>7.05){ MATCH.clear=false; s.t=0; matchMsg(OPP_NAME+' 清球完成，开始进攻，守住他！'); } }
+  else if(s.plan==='drive'){ tx=R.x; tz=R.z+MH.dir*1.0; spd=3.6; if(dR<1.8){ startAIShot('lay'); return; } }
+  else { const rr=s.plan==='three'?7.3:4.6; tx=R.x+Math.sin(s.ang)*rr; tz=R.z+MH.dir*Math.cos(s.ang)*rr; if(Math.hypot(tx-O.x,tz-O.z)<0.35||s.t>4.5){ startAIShot('jump'); return; } }
+  if(!MATCH.clear&&s.t>8){ startAIShot(dR<2.2?'lay':'jump'); return; }
+  let dx=tx-O.x, dz=tz-O.z; const dl=Math.hypot(dx,dz)||1; dx/=dl; dz/=dl;
+  const px=ap.x-O.x, pz=ap.z-O.z, ahead=px*dx+pz*dz, lat=-px*dz+pz*dx;
+  if(!MATCH.clear&&ahead>0&&ahead<1.6&&Math.abs(lat)<0.8&&s.juke<=0){ s.juke=0.45; s.jdir=lat>0?-1:1; }
+  let nx=dx, nz=dz; if(s.juke>0){ nx=dx-dz*s.jdir*1.6; nz=dz+dx*s.jdir*1.6; const nl=Math.hypot(nx,nz)||1; nx/=nl; nz/=nl; }
+  let sp=spd+(s.burst>0?1.3:0); if(ahead>0&&ahead<0.9&&Math.abs(lat)<0.6&&s.burst<=0) sp=Math.max(0.6,sp-2.0);
+  const mv=moveOpp(O.x+nx,O.z+nz,Math.min(sp,dl/Math.max(dt,1e-3)),dt,true); O.y=0;
+  opp.g.rotation.y=angLerp(opp.g.rotation.y,Math.atan2(nx,nz),1-Math.exp(-dt*10));
+  runPose(opp,dt,Math.max(mv,0.4)); opp.aR.sh.rotation.x=-0.55; opp.aR.el.rotation.x=-0.35-0.3*Math.abs(Math.cos(s.ph));
+  s.ph+=dt*(5+mv*1.3); const f={x:Math.sin(opp.g.rotation.y),z:Math.cos(opp.g.rotation.y)}, rt={x:-f.z,z:f.x};
+  ball.p.set(O.x+f.x*0.36+rt.x*0.26,BR+(0.8-BR)*Math.abs(Math.cos(s.ph)),O.z+f.z*0.36+rt.z*0.26);
+}
+function aiDefend(dt,live){
+  const p=opp.g.position, ax=avatar.position.x, az=avatar.position.z, R=MH.rim;
+  let hx=R.x-ax, hz=R.z-az; const hl=Math.hypot(hx,hz)||1; hx/=hl; hz/=hl;
+  const gap=MATCH.clear?1.7:hl<2.5?0.9:1.15;
+  const tx=Math.max(-7.2,Math.min(7.2,ax+hx*gap)), tz=Math.max(-13.6,Math.min(13.6,az+hz*gap));
+  const sp=moveOpp(tx,tz,Math.min(3.5,Math.hypot(tx-p.x,tz-p.z)*3),dt,false);
+  opp.g.rotation.y=Math.atan2(ax-p.x,az-p.z);
+  const ad=Math.hypot(p.x-ax,p.z-az);
+  MATCH.aiStealCd-=dt; opp.stealT=Math.max(0,(opp.stealT||0)-dt);
+  if(live&&ad<1.0&&ball.held&&!act&&onGround&&MATCH.aiStealCd<=0){ MATCH.aiStealCd=2.4; opp.stealT=0.3; if(Math.random()<0.2) aiSteal(); }
+  const contest=act&&(act.type==='shot'||act.type==='layup')&&ad<3;
+  p.y=contest?Math.max(0,Math.sin(Math.min(1,act.t/0.7)*Math.PI))*0.4:0;
+  opp.phase+=dt*sp*5; const sh=Math.sin(opp.phase)*Math.min(1,sp/2)*0.25;
+  if(contest) npcPose(opp,{lSh:-2.9,rSh:-2.9,lShZ:.15,rShZ:-.15,lEl:-.1,rEl:-.1,lTh:-.1,rTh:-.1});
+  else if(opp.stealT>0) npcPose(opp,{hipY:.82,lTh:-.6,rTh:-.3,lKn:.8,rKn:.6,spX:.4,rSh:-1.6,rEl:-.1,lSh:-.5,lShZ:1.0,lEl:-.3});
+  else npcPose(opp,{hipY:.8,lTh:-.5+sh,rTh:-.5-sh,lKn:.75,rKn:.75,spX:.28,lSh:-.5,rSh:-.5,lShZ:1.0,rShZ:-1.0,lEl:-.3,rEl:-.3,hX:-.2});
+}
+function aiChase(dt){ const p=opp.g.position; MATCH.react=Math.max(0,MATCH.react-dt);
+  if(MATCH.phase==='score'||MATCH.phase==='over'||MATCH.react>0||!inGym()){ p.y=0; opp.g.rotation.y=Math.atan2(ball.p.x-p.x,ball.p.z-p.z);
+    npcPose(opp,{hipY:.88,lKn:.3,rKn:.3,lTh:-.2,rTh:-.2,spX:.15,lSh:-.6,rSh:-.6,lEl:-.5,rEl:-.5}); return; }
+  const tx=Math.max(-7.3,Math.min(7.3,ball.p.x)), tz=Math.max(-13.7,Math.min(0.5,ball.p.z));
+  const sp=moveOpp(tx,tz,3.7,dt,false); p.y=0; opp.g.rotation.y=Math.atan2(ball.p.x-p.x,ball.p.z-p.z); runPose(opp,dt,sp);
+  if(Math.hypot(ball.p.x-p.x,ball.p.z-p.z)<0.65&&ball.p.y<1.8) aiGrab(); }
+function updateOpp(dt){
+  if(!MATCH.on||MATCH.phase==='over'&&!ball.ai&&!ball.held){ aiChase(dt); return; }
+  if(MATCH.aist&&MATCH.aist.shot) return aiOffense(dt);
+  const live=MATCH.phase==='play'&&inGym();
+  if(ball.ai){ if(!live){ aiHold(); return; } return aiOffense(dt); }
+  if(ball.held) return aiDefend(dt,live);
+  aiChase(dt);
+}
+function updateMatch(dt){
+  blockT=Math.max(0,blockT-dt); stealCd=Math.max(0,stealCd-dt);
+  if(!MATCH.on) return;
+  if(HS.role){ if(ball.ai){ ball.ai=false; ball.v.set(0,0,0); } MATCH.aist=null; return; }
+  MATCH.t-=dt;
+  if(MATCH.phase==='over'){ if(MATCH.t<=0) newGame(); return; }
+  if(MATCH.phase==='score'){ if(MATCH.t<=0) newPossession(MATCH.next,MATCH.next==='me'?'换你进攻！':'换 '+OPP_NAME+' 进攻，你来防守：贴近按「抢断」，他起跳投篮时按「盖帽」'); return; }
+  if(MATCH.phase==='check'&&MATCH.t<=0) MATCH.phase='play';
+  if(!inGym()) return;
+  const ap=avatar.position, B=ball;
+  if(MATCH.clear&&MATCH.poss==='me'&&B.held&&hd(ap.x,ap.z)>7.05){ MATCH.clear=false; matchMsg('清球完成，可以进攻了！'); }
+  // swat a shot that is still rising past your raised hands
+  if(blockT>0&&py>0.1&&!B.held&&!B.ai&&B.by==='ai'&&B.pending>0){ const f={x:Math.sin(yaw),z:Math.cos(yaw)};
+    if(Math.hypot(B.p.x-(ap.x+f.x*0.25),B.p.y-(py+2.3),B.p.z-(ap.z+f.z*0.25))<0.6&&B.v.y>-0.5) swatBall(ap,'盖帽！'+myName()+' 把 '+OPP_NAME+' 的投篮扇飞了','me'); }
+  // half court: past the side lines, the baseline or the half-court line is out
+  if(!B.held&&!B.ai&&(Math.abs(B.p.x)>7.6||B.p.z>0.4||B.p.z<-14.1)&&B.p.y<1.3){ MATCH.outT+=dt;
+    if(MATCH.outT>0.5){ const who=MATCH.poss==='me'?'ai':'me'; newPossession(who,'球出界了（半场 1 对 1），球权给'+(who==='me'?'你':OPP_NAME)); } }
+  else MATCH.outT=0;
+  STATS.points=MATCH.me; STATS.guest=MATCH.ai;
 }
 // ---------- interactions: beds, wardrobes, dealer, chatting ----------
 const INTER=[];
@@ -1618,23 +1839,48 @@ function useAction(){
   if(it.type==='bed'){ const f=$('fade'); f.style.opacity=1; setTimeout(()=>{ player.hp=100; updHP(); f.style.opacity=0; toast('睡了一觉，体力全满'); },700); }
   if(it.type==='wardrobe') openShop('wardrobe');
   if(it.type==='dealer') openShop('dealer');
+  if(it.type==='shop'||it.type==='gunshop'||it.type==='ammoshop') openShop(it.type);
   if(it.type==='chat') openChat(it.npc);
 }
 function openShop(kind){
-  const body=$('pBody'); body.textContent=''; $('pTitle').textContent=kind==='dealer'?'车行 · 你有 $'+SAVE.money:'衣柜 · 你有 $'+SAVE.money;
+  const body=$('pBody'); body.textContent='';
+  const titles={dealer:'车行',wardrobe:'我的衣柜',shop:'服装店',gunshop:'枪店',ammoshop:'子弹库'};
+  $('pTitle').textContent=(titles[kind]||'')+' · 你有 $'+SAVE.money;
   const row=(label,sub,btn,on,fn,col)=>{ const r=document.createElement('div'); r.className='prow';
     const sw=document.createElement('i'); sw.className='sw'; sw.style.background=col!==undefined?'#'+col.toString(16).padStart(6,'0'):'linear-gradient(135deg,#1b1b1f 50%,#6b5040 50%)'; r.append(sw);
     const tx=document.createElement('div'); tx.className='ptx'; const a=document.createElement('b'); a.textContent=label; const s=document.createElement('span'); s.textContent=sub; tx.append(a,s); r.append(tx);
     const b=document.createElement('button'); b.textContent=btn; b.disabled=!on; b.onclick=fn; r.append(b); body.append(r); };
+  const note=t=>{ const n=document.createElement('div'); n.className='pnote'; n.textContent=t; body.append(n); };
+  const pay=p=>{ if(SAVE.money<p){ toast('钱不够，去打比赛赢钱或点「充值」'); return false; } SAVE.money-=p; updCash(); saveSoon(); return true; };
   if(kind==='dealer'){
     for(const m of ['sports','suv','pickup']){ const C=CAR_MODELS[m], own=SAVE.cars.includes(m);
       row(C.name,own?'已拥有 · 最高时速 '+C.max*3.6+' km/h':'$'+C.price+' · 最高时速 '+(C.max*3.6).toFixed(0)+' km/h',own?'已拥有':'购买',!own&&SAVE.money>=C.price,()=>{ SAVE.money-=C.price; SAVE.cars.push(m); applySave(); saveSoon(); toast('买下了'+C.name+'！走过去就能开'); openShop('dealer'); },C.col); }
+  } else if(kind==='gunshop'){
+    note('桌上和两边柜台上的枪可以直接拿（走过去按「拿枪」）；也可以在这里买。');
+    row('手枪（带 30 发子弹）','$300','购买',SAVE.money>=300,()=>{ if(!pay(300)) return; if(gun.held){ gun.reserve+=30; updAmmo(); toast('又买了一把枪，子弹 +30'); } else { gun.ammo=30; equipGun(); } openShop('gunshop'); },0x1b1d22);
+    row('瞄准镜',gun.scope?'已经装上了':'$200','购买',!gun.scope&&SAVE.money>=200,()=>{ if(!pay(200)) return; gun.scope=true; updAmmo(); toast('装上瞄准镜了，开镜看得更远'); openShop('gunshop'); },0x6fc3ff);
+  } else if(kind==='ammoshop'){
+    note('地上和箱子上的弹药箱走过去会自动捡；也可以在这里买。你现在备用子弹 '+gun.reserve+' 发。');
+    for(const [n,p] of [[60,100],[150,220]]) row('子弹 '+n+' 发','$'+p,'购买',SAVE.money>=p,()=>{ if(!pay(p)) return; gun.reserve+=n; updAmmo(); toast('子弹 +'+n); openShop('ammoshop'); },0xc9a14a);
   } else {
-    const section=(title,LIST,key,ownKey)=>{ const h=document.createElement('div'); h.className='psec'; h.textContent=title; body.append(h);
-      for(const [id,it] of Object.entries(LIST)){ const own=SAVE[ownKey].includes(id), worn=SAVE[key]===id;
-        row(it.name,worn?'正在穿':own?'已拥有':'$'+it.price,worn?'穿着':own?'换上':'购买',!worn&&(own||SAVE.money>=it.price),()=>{ if(!own){SAVE.money-=it.price; SAVE[ownKey].push(id);} SAVE[key]=id; if(key!=='suit') SAVE.suit='none'; applyOutfit(); updCash(); saveSoon(); openShop('wardrobe'); },it.col); } };
+    const shop=kind==='shop';
+    note(shop?'在这里买衣服。买下后马上穿上，并存进「我的家」的衣柜，以后去衣柜随时换。':'这里存放你所有的衣服（包括在服装店买的）。想要新衣服，去「服装店」。');
+    const section=(title,LIST,key,ownKey)=>{ const items=Object.entries(LIST).filter(([id,it])=>shop?it.price>0:SAVE[ownKey].includes(id)); if(!items.length) return;
+      const h=document.createElement('div'); h.className='psec'; h.textContent=title; body.append(h);
+      for(const [id,it] of items){ const own=SAVE[ownKey].includes(id), worn=SAVE[key]===id;
+        if(shop) row(it.name,own?'已拥有 · 在「我的家」衣柜里':'$'+it.price,own?'已拥有':'购买',!own&&SAVE.money>=it.price,()=>{ if(!pay(it.price)) return; SAVE[ownKey].push(id); SAVE[key]=id; if(key!=='suit') SAVE.suit='none'; applyOutfit(); saveSoon(); toast('买下了'+it.name+'，已经穿上，也放进衣柜了'); openShop('shop'); },it.col);
+        else row(it.name,worn?'正在穿':'已拥有',worn?'穿着':'换上',!worn,()=>{ SAVE[key]=id; if(key!=='suit') SAVE.suit='none'; applyOutfit(); updCash(); saveSoon(); openShop('wardrobe'); },it.col); } };
     section('套装（全身）',SUITS,'suit','suits'); section('上衣',TOPS,'top','tops'); section('裤子',BOTS,'bot','bots');
   }
+  $('panel').hidden=false;
+}
+function openPlaces(){
+  const body=$('pBody'); body.textContent=''; $('pTitle').textContent='地点 · 房子门口和屋顶都有招牌';
+  const dirName=(dx,dz)=>['北','东北','东','东南','南','西南','西','西北'][((Math.round(Math.atan2(dx,-dz)*180/Math.PI/45)%8)+8)%8];
+  const n=document.createElement('div'); n.className='pnote'; n.textContent='北 = 比赛用的北边篮筐那一头；球场大门在南边。距离和方向是从你现在的位置算的。'; body.append(n);
+  for(const P of PLACES){ const dx=P.x-avatar.position.x, dz=P.z-avatar.position.z, d=Math.hypot(dx,dz);
+    const r=document.createElement('div'); r.className='prow'; const sw=document.createElement('i'); sw.className='sw'; sw.style.background=P.col||'#888'; r.append(sw);
+    const tx=document.createElement('div'); tx.className='ptx'; const a=document.createElement('b'); a.textContent=P.name; const s2=document.createElement('span'); s2.textContent=P.desc+' · '+(d<4?'就在这里':dirName(dx,dz)+'边 '+d.toFixed(0)+' 米'); tx.append(a,s2); r.append(tx); body.append(r); }
   $('panel').hidden=false;
 }
 // chatting with neighbours (Claude plays the character when available)
@@ -1680,7 +1926,7 @@ function upsertRemote(p){
   if(pr.name&&String(pr.name).slice(0,12)!==r.name){ r.name=String(pr.name).slice(0,12); scene.remove(r.tag); r.tag=makeTag(r.name); }
   for(const e of (pr.ev||[])){ if(!(e.s>r.last)) continue; r.last=e.s;
     if(e.k==='shot'&&e.a&&e.b){ const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...e.a),new THREE.Vector3(...e.b)]),new THREE.LineBasicMaterial({color:0xffe08a,transparent:true,opacity:.9})); ln.userData.t=0.12; scene.add(ln); tracers.push(ln); sfx(1500,0.16,0.35); }
-    if(e.k==='win'&&!HS.role&&!player.dead){ STATS.points=0; STATS.guest=0; toast(r.name+' 赢了比赛！给自己涂装伪装，然后躲起来'); startHider(r.peer); }
+    if(e.k==='win'&&!HS.role&&!player.dead){ if(MATCH.on){ MATCH.me=0; MATCH.ai=0; MATCH.phase='over'; MATCH.t=2; if(ball.ai) ball.ai=false; } toast(r.name+' 赢了比赛！给自己涂装伪装，然后躲起来'); startHider(r.peer); }
     if(e.k==='caught'&&e.to===MP.me&&HS.role==='seeker') hsReward();
     if(e.k==='fart'){ const fp=r.n.g.position; puffAt(fp.x,fp.y+.85,fp.z,false); }
     if(e.k==='hit'&&e.to===MP.me&&!player.dead){ MP.lastHitBy=r.name; MP.lastHitPeer=r.peer; MP.lastHitT=performance.now(); hurtPlayer(Math.min(60,e.d||10),r.n.g.position); }
@@ -1729,7 +1975,7 @@ async function initMP(){
 function sendPresence(){
   if(!MP.room) return; const now=performance.now(); if(now-MP.lastSend<80) return; MP.lastSend=now;
   const c=car.in?{x:r2(car.g.position.x),z:r2(car.g.position.z),h:r2(car.heading),m:car.model}:null;
-  MP.room.presence({v:1,name:MP.myName||null,x:r2(avatar.position.x),z:r2(avatar.position.z),y:r2(py),yaw:r2(yaw),spd:r2(speed),st:stance,gun:gun.held,car:c,hp:Math.round(player.hp),dead:player.dead,top:SAVE.top,bot:SAVE.bot,suit:SAVE.suit,fp:SAVE.fp,paint:HS.role==='hider'?SAVE.paint:null,hs:HS.role?HS.role[0]:null,ev:MP.ev}).catch(()=>{});
+  MP.room.presence({v:1,name:MP.myName||null,x:r2(avatar.position.x),z:r2(avatar.position.z),y:r2(py),yaw:r2(yaw),spd:r2(speed),st:stance,gun:gun.held,car:c,hp:Math.round(player.hp),dead:player.dead,ms:MATCH.on?[MATCH.me,MATCH.ai]:null,top:SAVE.top,bot:SAVE.bot,suit:SAVE.suit,fp:SAVE.fp,paint:HS.role==='hider'?SAVE.paint:null,hs:HS.role?HS.role[0]:null,ev:MP.ev}).catch(()=>{});
 }
 function remoteHitTest(o,d,bt){ let best=null; for(const [id,r] of MP.peers){ if(!r.pr||r.pr.dead) continue; const p=r.n.g.position; const [dist,tt]=raySeg(o,d,new THREE.Vector3(p.x,p.y+0.3,p.z),new THREE.Vector3(p.x,p.y+1.75,p.z)); if(dist<0.3&&tt<bt){bt=tt;best={kind:'remote',id,r}} } return [best,bt]; }
 function updateRemotes(dt){
@@ -1750,7 +1996,7 @@ function updateRemotes(dt){
   }
 }
 // ---------- register houses, dealer and neighbours as things you can use ----------
-HOUSES.forEach(h=>{ INTER.push({type:'bed',x:h.bed.x,z:h.bed.z,r:1.9,label:'睡觉'}); INTER.push({type:'wardrobe',x:h.ward.x,z:h.ward.z,r:1.6,label:'衣柜'}); });
+HOUSES.forEach(h=>{ if(h.bed) INTER.push({type:'bed',x:h.bed.x,z:h.bed.z,r:1.9,label:'睡觉'}); if(h.ward) INTER.push({type:'wardrobe',x:h.ward.x,z:h.ward.z,r:1.6,label:'衣柜'}); if(h.shop) INTER.push({type:h.shop,x:h.table.x,z:h.table.z,r:2.4,label:h.shopLabel}); });
 INTER.push({type:'dealer',x:DEALER.x,z:DEALER.z,r:3.5,label:'买车'});
 addNeighbour('小美','开朗爱笑的大学生，喜欢看NBA，偶尔开个小玩笑',HOUSES[1],0xf3c6d6,0xe58aa8,0x3a2418);
 addNeighbour('小雪','安静温柔的插画师，喜欢画画和猫',HOUSES[4],0xdfe8f5,0x8fb1d9,0x15110e);
@@ -1842,11 +2088,12 @@ function updatePolice(dt){
 }
 // ---------- defence on/off ----------
 let defenseOn=true;
-function setDefense(on){ defenseOn=on; defenders.forEach((d,i)=>{ if(!on){ d.g.position.set(-12.6,0,i?-9:9); d.g.rotation.y=Math.PI/2; npcPose(d,{}); } }); toast(on?'对手上场防守了':'对手下场了，没人防守你'); }
+function setDefense(on){ defenseOn=on; MATCH.on=on; if(on){ newGame(); } else { if(ball.ai){ ball.ai=false; ball.v.set(0,0,0); } MATCH.aist=null; toast('比赛关了，自由练习（随便投，计分牌记你的得分）'); } updScoreHud(); }
 // ---------- one ball, handled by the referee ----------
 let refBall={state:'idle',t:0,ref:null};
 function updateRefBall(dt){
-  const B=BALLS[0]; if(!B) return;
+  const B=BALLS[0]; if(!B||B.ai) return;
+  if(matchLive()&&inGym()){ refBall.state='idle'; refBall.t=0; return; }
   if(refBall.state==='idle'){
     const out=Math.abs(B.p.x)>7.6||Math.abs(B.p.z)>14.1;
     if(!B.held&&out&&B.v.length()<4&&B.p.y<1.5){ refBall.t+=dt; if(refBall.t>0.8){ const live=refs.filter(r=>!r.dead); if(live.length){ refBall.ref=live.reduce((a,r)=>Math.hypot(r.g.position.x-B.p.x,r.g.position.z-B.p.z)<Math.hypot(a.g.position.x-B.p.x,a.g.position.z-B.p.z)?r:a); refBall.state='hold'; refBall.t=0; toast('球出界了，裁判把球扔给你'); } else { B.p.set(0,1.2,0); B.v.set(0,0,0); refBall.t=0; } } }
@@ -1957,7 +2204,7 @@ function remoteLook(r,pr){ const key=[pr.top,pr.bot,pr.suit,pr.fp,pr.paint].join
 const keys={};
 addEventListener('keydown',e=>{ if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')){ if(e.key==='Enter') chatSend(); return; } keys[e.code]=true; if(e.code==='KeyU'&&!player.dead) useAction(); if(e.code==='KeyP'&&!e.repeat){ fartHold=true; fart(); } if(player.dead) return; if(e.code==='KeyK')startStrike('punch'); if(e.code==='KeyL')startStrike('kick');
   if(e.code==='Space'){jump();e.preventDefault()}
-  if(e.code==='Digit1')toggle('wave'); if(e.code==='Digit2')toggle('dance'); if(e.code==='KeyC')startMove('cross'); if(e.code==='KeyV')startMove('legs'); if(e.code==='KeyB')startMove('back'); if(e.code==='KeyF')faceCam(); if(e.code==='KeyG')gunAction(); if(e.code==='KeyZ')setStance('crouch'); if(e.code==='KeyX')setStance('prone'); if(e.code==='KeyQ')toggleAds(); if(e.code==='KeyJ'){gun.trigger=true;} if(e.code==='KeyH')carAction(); if(e.code==='KeyE')ballAction(); if(e.code==='KeyT')startLayup(); if(e.code==='KeyR')startDunk();});
+  if(e.code==='Digit1')toggle('wave'); if(e.code==='Digit2')toggle('dance'); if(e.code==='KeyC')startMove('cross'); if(e.code==='KeyV')startMove('legs'); if(e.code==='KeyB')startMove('back'); if(e.code==='KeyF')faceCam(); if(e.code==='KeyG')gunAction(); if(e.code==='KeyZ')setStance('crouch'); if(e.code==='KeyX')setStance('prone'); if(e.code==='KeyQ')toggleAds(); if(e.code==='KeyJ'){gun.trigger=true;} if(e.code==='KeyH')carAction(); if(e.code==='KeyE')ballAction(); if(e.code==='KeyT')startLayup(); if(e.code==='KeyR')startDunk(); if(e.code==='KeyN')blockJump(); if(e.code==='KeyM')stealAction();});
 addEventListener('keyup',e=>{keys[e.code]=false; if(e.code==='KeyJ') gun.trigger=false; if(e.code==='KeyP') fartHold=false;});
 let runToggle=false, mode='none'; // 'wave' | 'dance'
 const $=id=>document.getElementById(id);
@@ -1968,7 +2215,7 @@ press('kJump',()=>jump()); press('bPunch',()=>startStrike('punch')); press('bKic
    $('pDone').onclick=()=>{ if(HS.phase==='paint'&&HS.role==='hider') HS.t=0; else $('paint').hidden=true; }; $('pBrush').onclick=()=>{ brush=brush===1?2:1; $('pBrush').textContent='笔刷：'+(brush===1?'小':'大'); };
    $('pCamo').onclick=()=>{ SAVE.paint=randomCamo(); drawEditor(); drawCells(paintCanvas,SAVE.paint); PAINT_TEX.needsUpdate=true; }; $('pClear').onclick=()=>{ SAVE.paint=BLANK; drawEditor(); drawCells(paintCanvas,SAVE.paint); PAINT_TEX.needsUpdate=true; };} {const kf=$('kFart'); kf.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault(); if(player.dead) return; kf.setPointerCapture(e.pointerId); fartHold=true; fart();}); for(const ev of ['pointerup','pointercancel','lostpointercapture']) kf.addEventListener(ev,()=>{fartHold=false});}
   $('topup').addEventListener('click',()=>openTopup()); $('optDef').addEventListener('change',e=>{ setDefense(e.target.checked); e.target.blur(); }); $('respawn').addEventListener('click',()=>respawn()); $('pClose').onclick=()=>{$('panel').hidden=true}; $('cClose').onclick=()=>{$('chat').hidden=true}; $('cSend').onclick=()=>chatSend(); {const kf=$('kFire'); kf.addEventListener('pointerdown',e=>{e.stopPropagation();e.preventDefault(); if(player.dead) return; kf.setPointerCapture(e.pointerId); gun.trigger=true; fire();}); for(const ev of ['pointerup','pointercancel','lostpointercapture']) kf.addEventListener(ev,()=>{gun.trigger=false});}; press('bGun',()=>gunAction()); press('bDunk',()=>startDunk()); press('bLayup',()=>startLayup()); press('bBall',()=>ballAction()); press('bWave',()=>toggle('wave')); press('bDance',()=>toggle('dance'));
-press('bFace',()=>faceCam());
+press('bFace',()=>faceCam()); press('bBlock',()=>blockJump()); press('bSteal',()=>stealAction()); $('placesBtn').addEventListener('click',()=>openPlaces());
 $('hudHide').onclick=()=>{const b=$('hudBody');const h=b.style.display==='none';b.style.display=h?'':'none';$('hudHide').textContent=h?'收起':'展开'};
 
 // camera orbit
@@ -2006,7 +2253,7 @@ function updStanceBtns(){ $('kCrouch').classList.toggle('on',stance==='crouch');
 function setStance(s){ if(act) return; if(mode!=='none')toggle(mode); stance=stance===s?'stand':s; updStanceBtns(); }
 function standUp(){ if(stance!=='stand'){stance='stand'; updStanceBtns();} }
 function toggleAds(){ if(!gun.held) return; ads=!ads; updStanceBtns(); }
-function jump(){ if(stance!=='stand'){standUp(); return;} if(onGround&&!act){act={type:'hop',t:0}} }
+function jump(){ if(stance!=='stand'){standUp(); return;} if(defending()){ blockJump(); return; } if(onGround&&!act){act={type:'hop',t:0}} }
 const lerp=(a,b,k)=>a+(b-a)*k;
 const angLerp=(a,b,k)=>{let d=((b-a+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;return a+d*k};
 const clock=new THREE.Clock();
@@ -2095,6 +2342,8 @@ function setPose(dt){
     rSh=-0.9-0.7*ext; rEl=-2.0*(1-ext)-0.05; rShZ=-0.05; rElZ=0; lSh=-1.1; lEl=-1.9; lShZ=0.15; spY=-0.45*ext; spX=0.12; hipY=0.93; lTh=-0.35; lKn=0.45; rTh=0.2; rKn=0.25;}
   if(act&&act.type==='kick'){const u=act.t/act.dur, ext=u<0.4?u/0.4:u<0.65?1:Math.max(0,1-(u-0.65)/0.35);
     rTh=-1.5*ext; rKn=1.6*(1-ext)+0.05; lTh=0.05; lKn=0.2; spX=-0.25*ext; hipY=0.98; if(!gun.held){lSh=-0.8; rSh=0.3; lShZ=0.6; rShZ=-0.6; lEl=-1.4; rEl=-1.0; rElZ=0;}}
+  if(blockT>0&&!onGround){ lSh=rSh=-3.0; lShZ=0.2; rShZ=-0.2; lEl=rEl=-0.05; rElZ=0; }
+  if(act&&act.type==='steal'){ const e=Math.sin(Math.min(1,act.t/act.dur)*Math.PI); rSh=-0.3-1.3*e; rEl=-0.1; rShZ=-0.1; rElZ=0; spX=0.3*e; lTh=-0.5*e; lKn=0.6*e; }
   hipY-=landSquash*0.12; lKn+=landSquash*0.5; rKn+=landSquash*0.5; lTh-=landSquash*0.25; rTh-=landSquash*0.25;
   const k=1-Math.exp(-dt*(act&&act.type!=='hop'?24:14)), S=(o,p,v)=>o.rotation[p]=lerp(o.rotation[p],v,k);
   S(legL.th,'x',lTh);S(legR.th,'x',rTh);S(legL.kn,'x',lKn);S(legR.kn,'x',rKn);
@@ -2133,6 +2382,7 @@ function loop(){
     if(mode==='wave'&&running) toggle('wave');
     faceT=0;
   }
+  if(stunT>0){ stunT-=dt; target*=0.35; }
   if(!locked) speed=lerp(speed,target,1-Math.exp(-dt*(target>speed?6:9)));
   if(gun.held) yaw=angLerp(yaw,camYaw+Math.PI,1-Math.exp(-dt*16));
   {let dy=((yaw-yawPrev+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI; lean=lerp(lean,Math.max(-0.28,Math.min(0.28,-dy/Math.max(dt,1e-3)*speed*0.03)),1-Math.exp(-dt*6)); yawPrev=yaw;}
@@ -2174,7 +2424,7 @@ function loop(){
 camLook.set(0,camTargetY,0); camera.position.set(Math.sin(camYaw)*camDist,1.5,Math.cos(camYaw)*camDist);
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 window.__dbg=null&&{applyOutfit,HS,startHider,startSeeker,endHS,SUITS,randomCamo,POLICE,raiseWanted,fart,setDefense,getFH:()=>fartHold,setFH:v=>{fartHold=v},getPy:()=>py,refBall,upsertRemote,applyOutfit,MP,SAVE,CARS,GIRLS,cheer,INTER,useAction,openShop,addMoney,respawn,getCar:()=>car,car,carAction,PICKUPS,takePickup,player,allNPCs,startStrike,hurtPlayer,resetGame,startLayup,smug,setStance,toggleAds,getStance:()=>stance,BALLS,STATS,gunAction,fire,gun,defenders,avatar,ball,ballAction,startDunk,startMove,HOOPS,getAct:()=>act,THREE,setCam:(y,p,d,ty)=>{camYaw=y;camPitch=p;camDist=d;if(ty!==undefined)camTargetY=ty},toggle,jump,keys};
-loop(); initSave(); initMP();
+MATCH.ready=true; newGame(); loop(); initSave(); initMP();
 })();
 </script>
 

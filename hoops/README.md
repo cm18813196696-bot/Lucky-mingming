@@ -55,6 +55,7 @@ npm start
 
 - `public/models/man.glb`：Ready Player Me 头像（来自 three.js 示例，`examples/models/gltf/readyplayer.me.glb`）。
 - `public/models/woman.glb`：Mixamo 角色 Michelle（来自 three.js 示例，`examples/models/gltf/Michelle.glb`）。
+- `public/models/police.glb`：Mixamo 角色 Soldier（来自 three.js 示例，`examples/models/gltf/Soldier.glb`），用作警察。
 - `public/gltf-loader.js`：three.js r147 的 GLTFLoader（MIT 许可）。
 
 游戏里的所有人物仍然由原来的简易骨架计算动作，每一帧把关节角度同步到这些专业模型的骨骼上。

@@ -107,6 +107,7 @@
   <div class="desk">按住 <span class="k">P</span> 放屁飞上天（在天上也能开枪、出拳）</div>
   <div class="desk"><span class="k">U</span> 互动（睡觉 · 衣柜换装 · 买衣服 · 买枪 · 买子弹 · 买车 · 聊天）</div>
   <div>1对1：你进攻时投篮/上篮/扣篮；你防守时靠近按「抢断」，他起跳投篮时按「盖帽」<span class="desk">（<span class="k">M</span> 或 <span class="k">E</span> 抢断，<span class="k">N</span> 或 <span class="k">空格</span> 盖帽）</span>。抢到篮板要先把球带出三分线（清球）。</div>
+  <div>农场：去「地点」里的农场种菜，熟了收菜，到菜摊卖钱；在「游戏 → 背包」吃菜回体力。房子、屋顶、墙、桌子、看台都能站上去（跳上去或放屁飞上去）。朋友在线时没有警察，路人也不会捡枪，只有你们俩对枪。</div>
   <div>点上方「游戏」：1对1 打电脑、真人约战、捉迷藏、全身 DIY 涂装都能随时进入、随时退出（右上角红色「退出」按钮）。</div>
   <div>和真人打 1对1：点上方「约战」邀请在线的朋友，比分由服务器统一记，两个人的大屏幕完全一样。</div>
   <div>每栋房子门口和屋顶都挂了招牌：服装店、枪店、子弹库、车行、我的家（衣柜）。点上方「地点」看方向和距离</div>
@@ -212,7 +213,7 @@ const obstacles=[];
   const trunk=new THREE.MeshStandardMaterial({color:0x6b4a32,roughness:1});
   const leaf=new THREE.MeshStandardMaterial({color:0x3f7a3a,roughness:1});
   for(let i=0;i<110;i++){
-    const x=rnd(-70,70),z=rnd(-70,70); if((Math.abs(x)<17&&Math.abs(z)<23)||(z>21&&z<42&&Math.abs(x)<54)||(x>22&&x<38&&z>-20&&z<16)||(x<-22&&x>-38&&z>-16&&z<0)) continue;
+    const x=rnd(-70,70),z=rnd(-70,70); if((x>-62&&x<-42&&z>-3&&z<21)||(Math.abs(x)<17&&Math.abs(z)<23)||(z>21&&z<42&&Math.abs(x)<54)||(x>22&&x<38&&z>-20&&z<16)||(x<-22&&x>-38&&z>-16&&z<0)) continue;
     const t=new THREE.Group();
     const tr=new THREE.Mesh(new THREE.CylinderGeometry(.15,.22,1.6,8),trunk); tr.position.y=.8;
     const s=rnd(1,1.8);
@@ -1217,7 +1218,7 @@ function sfx(freq,len,gain){ try{ audioCtx=audioCtx||new (window.AudioContext||w
   for(let i=0;i<n;i++) ch[i]=(Math.random()*2-1)*Math.exp(-i/(n*0.18)); const s=ac.createBufferSource(); s.buffer=buf; const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=freq; const g=ac.createGain(); g.gain.value=gain; s.connect(f); f.connect(g); g.connect(ac.destination); s.start(); }catch(e){} }
 function panicAround(pos,r){
   allNPCs().forEach(n=>{ if(n.dead||n.fight>0||n.armed||n.seek) return; const d=Math.hypot(n.g.position.x-pos.x,n.g.position.z-pos.z);
-    if(d<r&&(n.def||Math.random()<0.25)){ const pk=nearestPickup(n.g.position,'gun',25,true); if(pk&&!pk.claimed){ n.seek=pk; pk.claimed=n; return; } if(n.def){ n.fight=10; return; } }
+    if(d<r&&!friendsOnline()&&(n.def||Math.random()<0.25)){ const pk=nearestPickup(n.g.position,'gun',25,true); if(pk&&!pk.claimed){ n.seek=pk; pk.claimed=n; return; } if(n.def){ n.fight=10; return; } }
     if(d<r){ n.flee=Math.max(n.flee,5+Math.random()*2.5); let dx=n.g.position.x-pos.x, dz=n.g.position.z-pos.z, l=Math.hypot(dx,dz)||1; const a=(Math.random()-0.5)*1.2, c=Math.cos(a), s=Math.sin(a); n.fdir={x:(dx*c-dz*s)/l,z:(dx*s+dz*c)/l}; } });
   crowd.forEach(c=>{ if(Math.hypot(c.x-pos.x,c.z-pos.z)<r*1.6) c.panic=Math.max(c.panic||0,4); });
 }
@@ -1227,7 +1228,7 @@ function hurtNPC(n,dmg,from,kind,push){
   let dx=n.g.position.x-from.x, dz=n.g.position.z-from.z, l=Math.hypot(dx,dz)||1; n.knock={x:dx/l*push,z:dz/l*push}; n.hitT=0.35;
   const label=NPC_LABEL.get(n)||'对方';
   if(n.hp<=0){ if(n.hiding) hsCaughtAI(n); n.dead=true; n.down=1e9; n.fight=0; n.flee=0; gun.kills++; if(n.armed){ n.armed=false; n.aR.el.remove(n.gun); spawnPickup('gun',n.g.position.x,n.g.position.z,{ammo:20}); } if(n.seek){n.seek.claimed=null; n.seek=null;} toast(label+'被打倒了！'); panicAround(n.g.position,9); return; }
-  if(kind==='gun'||kind==='car'){ if(n.armed||n.hiding){} else if(n.fight>0&&n.hp>=35){ toast(label+'中枪了，还在冲过来！'); } else { const pk=n.hp>=50?nearestPickup(n.g.position,'gun',14,true):null; if(pk&&!pk.claimed){ n.seek=pk; pk.claimed=n; toast(label+'跑去捡枪了！'); } else { n.fight=0; n.flee=6; n.fdir={x:dx/l,z:dz/l}; toast(label+(kind==='car'?'被车撞了！':'中枪了，正在逃跑！')); } } }
+  if(kind==='gun'||kind==='car'){ if(n.armed||n.hiding){} else if(n.fight>0&&n.hp>=35){ toast(label+'中枪了，还在冲过来！'); } else { const pk=n.hp>=50&&!friendsOnline()?nearestPickup(n.g.position,'gun',14,true):null; if(pk&&!pk.claimed){ n.seek=pk; pk.claimed=n; toast(label+'跑去捡枪了！'); } else { n.fight=0; n.flee=6; n.fdir={x:dx/l,z:dz/l}; toast(label+(kind==='car'?'被车撞了！':'中枪了，正在逃跑！')); } } }
   else { n.fight=10; n.flee=0; if(n.def) defenders.forEach(d=>{ if(!d.dead) d.fight=10; }); toast(label+'被你打了，冲过来还手！'); }
 }
 function hurtPlayer(dmg,from){
@@ -1255,6 +1256,8 @@ function npcAI(n,dt){
   if(n.hitT>0){ n.hitT-=dt; p.x+=n.knock.x*dt; p.z+=n.knock.z*dt; clampN(n,p); p.y=0; npcPose(n,{spX:-0.45,hX:-0.35,lShZ:.7,rShZ:-.7,lSh:-.5,rSh:-.5,lEl:-.4,rEl:-.4}); return true; }
   if(n.hiding){ p.y=0; npcPose(n,{hipY:.6,lTh:-1.1,rTh:-1.1,lKn:1.7,rKn:1.7,spX:.35,lSh:-.6,rSh:-.6,lEl:-1.2,rEl:-1.2}); return true; }
   if(n.seekAI&&!n.armed){ hsSeekerAI(n,dt); return true; }
+  if(n.armed&&!n.seekAI&&!n.isPolice&&friendsOnline()){ n.armed=false; if(n.gun){ n.aR.el.remove(n.gun); n.gun=null; } spawnPickup('gun',p.x+0.6,p.z,{ammo:20}); }
+  if(n.seek&&friendsOnline()){ n.seek.claimed=null; n.seek=null; }
   if(n.armed&&!player.dead){ p.y=0; const d=Math.hypot(ap.x-p.x,ap.z-p.z);
     if(d>16){ stepTo(n,ap.x,ap.z,3.2,dt); runPose(n,dt,3.2); return true; }
     n.g.rotation.y=Math.atan2(ap.x-p.x,ap.z-p.z); n.shootCd-=dt; n.recoil=Math.max(0,(n.recoil||0)-dt*6); if(n.shootCd<=0){ n.shootCd=0.55+Math.random()*0.5; npcShoot(n); }
@@ -1301,7 +1304,7 @@ function updateCombat(dt){
 }
 
 // ---------- outside world: road, houses, car, weapon pickups ----------
-const PICKUPS=[], HOUSES=[], PLACES=[];
+const PICKUPS=[], HOUSES=[], PLACES=[], ROOFS=[];
 function signTex(txt,bg){ return canvasTex(512,128,g=>{ g.fillStyle=bg; g.fillRect(0,0,512,128); g.strokeStyle='rgba(255,255,255,.85)'; g.lineWidth=6; g.strokeRect(5,5,502,118);
   let px=72; g.font='bold '+px+'px sans-serif'; while(g.measureText(txt).width>470&&px>24){ px-=4; g.font='bold '+px+'px sans-serif'; }
   g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(txt,256,68); }); }
@@ -1347,7 +1350,7 @@ function nearestPickup(pos,type,maxd,arenaOnly){ let best=null,bd=maxd; for(cons
     if(door==='x'){ wall(X0-T/2,X0+T/2,Z0,cz-dw/2); wall(X0-T/2,X0+T/2,cz+dw/2,Z1); wall(X0-T/2,X0+T/2,cz-dw/2,cz+dw/2,2.4,H-2.4); } else wall(X0-T/2,X0+T/2,Z0,Z1);
     if(door==='X'){ wall(X1-T/2,X1+T/2,Z0,cz-dw/2); wall(X1-T/2,X1+T/2,cz+dw/2,Z1); wall(X1-T/2,X1+T/2,cz-dw/2,cz+dw/2,2.4,H-2.4); } else wall(X1-T/2,X1+T/2,Z0,Z1);
     plane(w,d,cx,cz,stdMat(0x8a6a4a,{roughness:.8}),.02);
-    const rf=new THREE.Mesh(new THREE.ConeGeometry(1,1,4),stdMat(0x7a3b2e,{roughness:.85})); rf.rotation.y=Math.PI/4; rf.scale.set(w*0.78,2.2,d*0.78); rf.position.set(cx,H+1.1,cz); rf.castShadow=true; scene.add(rf);
+    const rf=new THREE.Mesh(new THREE.ConeGeometry(1,1,4),stdMat(0x7a3b2e,{roughness:.85})); rf.rotation.y=Math.PI/4; rf.scale.set(w*0.78,2.2,d*0.78); rf.position.set(cx,H+1.1,cz); rf.castShadow=true; scene.add(rf); ROOFS.push({cx,cz,hx:0.551*w,hz:0.551*d,y0:H,h:2.2});
     const win=new THREE.MeshStandardMaterial({color:0x9cc7e6,roughness:.2,metalness:.3});
     for(const s of [-1,1]){ const wm=new THREE.Mesh(new THREE.BoxGeometry(1.1,.9,.05),win); wm.position.set(cx+s*w/4,1.7,Z1+T/2+.01); scene.add(wm); }
     boxAt(1.2,.75,.7,stdMat(0x5b4030),cx,.375,Z1-1.0); RECTS.push({x0:cx-.6,x1:cx+.6,z0:Z1-1.35,z1:Z1-.65,h:.75});
@@ -1409,6 +1412,67 @@ function nearestPickup(pos,type,maxd,arenaOnly){ let best=null,bd=maxd; for(cons
   spawnPickup('gun',gun.stand.x,gun.stand.z,{y:.8,ammo:30});
   for(const [x,z] of [[-12.6,-15],[12,-17]]){ boxAt(.7,.5,.5,stdMat(0x8a6a3a),x,.25,z); RECTS.push({x0:x-.35,x1:x+.35,z0:z-.25,z1:z+.25,h:.5}); spawnPickup('gun',x,z,{y:.55,ammo:30}); }
 }
+// ---------- farm: plant, water, harvest, sell or eat ----------
+const CROPS={cabbage:{name:'白菜',seed:20,grow:60,price:25,heal:20,yield:3,col:0x8fd05a},tomato:{name:'番茄',seed:40,grow:90,price:45,heal:30,yield:3,col:0xd8382c},melon:{name:'西瓜',seed:80,grow:150,price:130,heal:50,yield:2,col:0x2f7a2f}};
+const PLOTS=[], MARKET={x:-45.6,z:8};
+{
+  const dirt=new THREE.Mesh(new THREE.PlaneGeometry(16,19),stdMat(0x8a6a42,{roughness:1})); dirt.rotation.x=-Math.PI/2; dirt.position.set(-53,0.01,8.5); dirt.receiveShadow=true; scene.add(dirt);
+  for(let c=0;c<3;c++) for(let r=0;r<4;r++){ const x=-57.4+c*3.4, z=1.8+r*3.4;
+    const soil=new THREE.Mesh(new THREE.BoxGeometry(2.6,.12,2.6),stdMat(0x5a3e24,{roughness:1})); soil.position.set(x,.06,z); soil.receiveShadow=true; scene.add(soil);
+    const g=new THREE.Group(); g.position.set(x,.12,z); scene.add(g); PLOTS.push({x,z,soil,g,key:''}); }
+  const post=stdMat(0x7a5a3a,{roughness:.9});
+  for(const [x0,z0,x1,z1] of [[-61,-1,-45,-1],[-61,18,-49,18],[-61,-1,-61,18]]){ const len=Math.hypot(x1-x0,z1-z0), n=Math.round(len/2);
+    for(let i=0;i<=n;i++){ const p=new THREE.Mesh(new THREE.BoxGeometry(.1,.9,.1),post); p.position.set(x0+(x1-x0)*i/n,.45,z0+(z1-z0)*i/n); scene.add(p); }
+    const rail=new THREE.Mesh(new THREE.BoxGeometry(Math.abs(x1-x0)+.1,.08,Math.abs(z1-z0)+.1),post); rail.position.set((x0+x1)/2,.75,(z0+z1)/2); scene.add(rail); }
+  const top=labelSprite('农场 · 种菜','#5a8a2a',4.4,1.1); top.position.set(-53,3.6,18.4); scene.add(top);
+  // vegetable stall
+  const wood=stdMat(0x8a5a32,{roughness:.8}); boxAt(2.4,.9,1.0,wood,MARKET.x,.45,MARKET.z); RECTS.push({x0:MARKET.x-1.2,x1:MARKET.x+1.2,z0:MARKET.z-.5,z1:MARKET.z+.5,h:.9});
+  for(const [k,dx] of [['cabbage',-0.7],['tomato',0],['melon',0.7]]){ const m=new THREE.Mesh(new THREE.SphereGeometry(k==='melon'?.2:.13,14,10),stdMat(CROPS[k].col,{roughness:.6})); m.position.set(MARKET.x+dx,1.0,MARKET.z); scene.add(m); }
+  for(const sx of [-1.1,1.1]){ const p=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,2.4,8),wood); p.position.set(MARKET.x+sx,1.2,MARKET.z-.45); scene.add(p); }
+  const awn=new THREE.Mesh(new THREE.BoxGeometry(2.6,.08,1.4),stdMat(0xd8382c,{roughness:.7})); awn.position.set(MARKET.x,2.4,MARKET.z); awn.rotation.x=0.15; scene.add(awn);
+  const sg=labelSprite('菜摊 · 卖菜','#d8382c',2.6,.65); sg.position.set(MARKET.x,3.0,MARKET.z); scene.add(sg);
+  PLACES.push({name:'农场',desc:'12 块地：种白菜、番茄、西瓜',x:-53,z:8,col:'#5a8a2a'},{name:'菜摊',desc:'把种出来的菜卖掉换钱',x:MARKET.x,z:MARKET.z,col:'#d8382c'});
+}
+function plotState(i){ const p=SAVE.farm&&SAVE.farm[i]; if(!p||!CROPS[p.k]) return {stage:0}; const C=CROPS[p.k], total=C.grow*1000*(p.w?0.7:1), f=Math.min(1,(Date.now()-p.at)/total);
+  return {stage:f>=1?3:f<0.35?1:2,f,left:Math.max(0,Math.ceil((total-(Date.now()-p.at))/1000)),C,p}; }
+function cropModel(k,stage){ const g=new THREE.Group(), leaf=stdMat(0x4f9a3a,{roughness:.8}), C=CROPS[k];
+  for(const [dx,dz] of [[-.6,-.6],[.6,-.6],[-.6,.6],[.6,.6]]){ let m;
+    if(stage===1){ m=new THREE.Mesh(new THREE.ConeGeometry(.08,.25,6),leaf); m.position.set(dx,.12,dz); }
+    else if(stage===2){ m=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),leaf); m.scale.set(.25,.18,.25); m.position.set(dx,.16,dz); }
+    else if(k==='cabbage'){ m=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),stdMat(C.col,{roughness:.7})); m.scale.set(.32,.26,.32); m.position.set(dx,.24,dz); }
+    else if(k==='tomato'){ m=new THREE.Group(); const b=new THREE.Mesh(new THREE.SphereGeometry(.3,10,8),leaf); b.position.y=.35; m.add(b); for(let j=0;j<4;j++){ const tm=new THREE.Mesh(new THREE.SphereGeometry(.08,10,8),stdMat(C.col,{roughness:.5})); tm.position.set(Math.cos(j*1.6)*.27,.3+(j%2)*.15,Math.sin(j*1.6)*.27); m.add(tm); } m.position.set(dx,0,dz); }
+    else { m=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),stdMat(C.col,{roughness:.5})); m.scale.set(.42,.3,.32); m.position.set(dx,.28,dz); }
+    m.traverse(o=>{ if(o.isMesh) o.castShadow=true; }); g.add(m); }
+  return g; }
+let farmT=0;
+function updateFarm(dt){ farmT-=dt; if(farmT>0||!SAVE.farm) return; farmT=0.5;
+  PLOTS.forEach((P,i)=>{ const s=plotState(i), key=s.stage+'|'+(s.p?s.p.k+s.p.w:''); if(P.it) P.it.label=s.stage===0?'种菜':s.stage===3?'收菜':s.p.w?'看看':'浇水';
+    if(key===P.key) return; P.key=key; P.g.clear(); if(s.stage) P.g.add(cropModel(s.p.k,s.stage)); P.soil.material.color.set(s.p&&s.p.w?0x3e2a18:0x5a3e24); }); }
+function plantAll(k,i0){ const C=CROPS[k]; let n=0; for(let i=0;i<12;i++){ if(i0!==undefined&&i!==i0) continue; if(SAVE.farm[i]) continue; if(SAVE.money<C.seed) break; SAVE.money-=C.seed; SAVE.farm[i]={k,at:Date.now(),w:0}; n++; }
+  updCash(); saveSoon(); farmT=0; toast(n?'种下了 '+n+' 块'+C.name+'，'+C.grow+' 秒后成熟（浇水更快）':'钱不够买种子'); }
+function farmUse(i){ const s=plotState(i);
+  if(s.stage===3){ SAVE.bag[s.p.k]=(SAVE.bag[s.p.k]||0)+s.C.yield; SAVE.farm[i]=null; saveSoon(); farmT=0; toast('收了 '+s.C.yield+' 个'+s.C.name+'！去菜摊卖，或者在「背包」里吃掉回血'); sfx(900,0.08,0.5); return; }
+  if(s.stage){ if(!s.p.w){ s.p.w=1; saveSoon(); farmT=0; toast('浇了水，'+s.C.name+'长得更快了'); } else toast(s.C.name+'还要 '+s.left+' 秒成熟'); return; }
+  const body=$('pBody'); body.textContent=''; $('pTitle').textContent='种菜 · 你有 $'+SAVE.money;
+  const note=document.createElement('div'); note.className='pnote'; note.textContent='买种子种下，熟了收菜。菜可以去菜摊卖钱，也可以在「背包」里吃掉回体力。'; body.append(note);
+  for(const [k,C] of Object.entries(CROPS)){ const r=document.createElement('div'); r.className='prow'; const sw=document.createElement('i'); sw.className='sw'; sw.style.background='#'+C.col.toString(16).padStart(6,'0'); r.append(sw);
+    const x=document.createElement('div'); x.className='ptx'; const a=document.createElement('b'); a.textContent=C.name+'  种子 $'+C.seed; const sp=document.createElement('span'); sp.textContent=C.grow+' 秒成熟 · 收 '+C.yield+' 个 · 每个卖 $'+C.price+' · 吃一个 +'+C.heal+' 体力'; x.append(a,sp); r.append(x);
+    for(const [lbl,all] of [['种这块',false],['全种满',true]]){ const b=document.createElement('button'); b.textContent=lbl; b.disabled=SAVE.money<C.seed; b.onclick=()=>{ plantAll(k,all?undefined:i); $('panel').hidden=true; }; r.append(b); }
+    body.append(r); }
+  $('panel').hidden=false; }
+function openBag(market){
+  const body=$('pBody'); body.textContent=''; $('pTitle').textContent=(market?'菜摊':'背包')+' · 你有 $'+SAVE.money+' · 体力 '+Math.ceil(player.hp);
+  const note=document.createElement('div'); note.className='pnote'; note.textContent=market?'把菜卖给菜摊换钱；也可以直接吃掉回体力。':'吃菜回体力。想卖钱去农场旁边的「菜摊」。'; body.append(note);
+  let any=false;
+  for(const [k,C] of Object.entries(CROPS)){ const n=SAVE.bag[k]||0; if(!n) continue; any=true;
+    const r=document.createElement('div'); r.className='prow'; const sw=document.createElement('i'); sw.className='sw'; sw.style.background='#'+C.col.toString(16).padStart(6,'0'); r.append(sw);
+    const x=document.createElement('div'); x.className='ptx'; const a=document.createElement('b'); a.textContent=C.name+' × '+n; const sp=document.createElement('span'); sp.textContent='吃一个 +'+C.heal+' 体力'+(market?' · 每个卖 $'+C.price:''); x.append(a,sp); r.append(x);
+    const btn=(lbl,fn,on=true)=>{ const b=document.createElement('button'); b.textContent=lbl; b.disabled=!on; b.onclick=fn; r.append(b); };
+    btn('吃',()=>{ SAVE.bag[k]--; player.hp=Math.min(100,player.hp+C.heal); updHP(); saveSoon(); toast('吃了一个'+C.name+'，体力 +'+C.heal); openBag(market); },!player.dead);
+    if(market){ btn('卖 1 个',()=>{ SAVE.bag[k]--; addMoney(C.price); toast('卖了 1 个'+C.name+'，+$'+C.price); openBag(true); }); btn('全卖',()=>{ const m=n*C.price; SAVE.bag[k]=0; addMoney(m); toast('卖了 '+n+' 个'+C.name+'，+$'+m); openBag(true); }); }
+    body.append(r); }
+  if(!any){ const e=document.createElement('div'); e.className='pnote'; e.textContent='背包里还没有菜。去农场种地，熟了按「收菜」。'; body.append(e); }
+  $('panel').hidden=false; }
 // ---------- cars: several models, some free, some for sale ----------
 const CAR_MODELS={
   jeep:{name:'敞篷吉普',col:0xb8262b,max:15,price:0},
@@ -1595,7 +1659,7 @@ function updateSocial(dt){
     const s=Math.sin(t*1.4+n.ph); npcPose(n,{lSh:-0.15,rSh:-0.15,lShZ:0.12,rShZ:-0.12,lEl:-0.5+0.1*s,rEl:-0.5-0.1*s,spZ:0.03*s,hY:0.15*s}); }
 }
 // ---------- saved progress: money, clothes, cars, friendships ----------
-const SAVE={v:2,money:0,tops:['white','orig'],bots:['whiteBase','orig'],suits:['none'],cars:[],top:'white',bot:'whiteBase',suit:'none',favor:{},paint:null,fp:0};
+const SAVE={v:2,money:0,tops:['white','orig'],bots:['whiteBase','orig'],suits:['none'],cars:[],top:'white',bot:'whiteBase',suit:'none',favor:{},paint:null,fp:0,farm:Array(12).fill(null),bag:{}};
 const TOPS={white:{name:'白色基础T恤',price:0,col:0xf4f4f2,set:'tee'},orig:{name:'原装背心（扫描）',price:0},
   red:{name:'红色球衣',price:1000,col:0xc8312f,set:'tank'},blue:{name:'蓝色球衣',price:1000,col:0x1f4fb0,set:'tank'},gold:{name:'金色球衣',price:1000,col:0xd9a82a,set:'tank'},
   pinkT:{name:'粉色T恤',price:1000,col:0xe58aa8,set:'tee'},hoodie:{name:'黑色卫衣',price:1000,col:0x2a2c31,set:'long'},greyH:{name:'灰色卫衣',price:1000,col:0x8d9299,set:'long'}};
@@ -1682,7 +1746,7 @@ function applyOutfit(){
 
 let saveDoc=null, saveTimer=0, isGuest=false;
 function saveSoon(){ try{ localStorage.setItem('hoops_save_v1',JSON.stringify(SAVE)); }catch(e){} clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ if(saveDoc) saveDoc.set(JSON.parse(JSON.stringify(SAVE))).catch(()=>{}); },1500); }
-function migrateSave(){ SAVE.paint=null; SAVE.fp=0; SAVE.suits=SAVE.suits||['none']; SAVE.suit=SAVE.suit||'none'; if(SAVE.v!==2){ SAVE.v=2; SAVE.top='white'; SAVE.bot='whiteBase'; SAVE.suit='none'; } for(const k of ['white','orig']) if(!SAVE.tops.includes(k)) SAVE.tops.push(k); for(const k of ['whiteBase','orig']) if(!SAVE.bots.includes(k)) SAVE.bots.push(k); }
+function migrateSave(){ if(!Array.isArray(SAVE.farm)||SAVE.farm.length!==12) SAVE.farm=Array(12).fill(null); if(!SAVE.bag||typeof SAVE.bag!=='object') SAVE.bag={}; SAVE.paint=null; SAVE.fp=0; SAVE.suits=SAVE.suits||['none']; SAVE.suit=SAVE.suit||'none'; if(SAVE.v!==2){ SAVE.v=2; SAVE.top='white'; SAVE.bot='whiteBase'; SAVE.suit='none'; } for(const k of ['white','orig']) if(!SAVE.tops.includes(k)) SAVE.tops.push(k); for(const k of ['whiteBase','orig']) if(!SAVE.bots.includes(k)) SAVE.bots.push(k); }
 function updCash(){ $('cash').textContent='$'+SAVE.money; }
 function addMoney(v,why){ SAVE.money+=v; updCash(); saveSoon(); if(why) setTimeout(()=>toast(why),900); }
 function applySave(){
@@ -1966,6 +2030,9 @@ function openGames(){
   sec('捉迷藏（全身涂装）');
   if(m==='hs') row('正在玩捉迷藏',HS.role==='hider'?'你在躲':'你在找',[['退出',()=>{ quitCurrent(); }]]);
   else { row('我来躲','先全身涂白，自己画伪装，再去躲',[['进入',()=>startHS('hide')]]); row('我来找','电脑对手去躲，你去找他',[['进入',()=>startHS('seek')]]); }
+  sec('种地');
+  row('农场','种白菜、番茄、西瓜，熟了收菜（在「地点」里看方向）',[['看方向',()=>openPlaces()]]);
+  row('背包','吃菜回体力',[['打开',()=>openBag(false)]]);
   sec('换装');
   row('全身 DIY 涂装','不玩捉迷藏也能画，全身先变白',[['打开',()=>{ $('panel').hidden=true; if(!SAVE.paint){ SAVE.paint=BLANK; SAVE.fp=5; } applyOutfit(); openPaint(); }],['卸掉',SAVE.paint&&!HS.role?()=>{ SAVE.paint=null; SAVE.fp=0; applyOutfit(); toast('涂装卸掉了'); openGames(); }:null]]);
   $('panel').hidden=false;
@@ -1997,6 +2064,8 @@ function useAction(){
   if(it.type==='dealer') openShop('dealer');
   if(it.type==='shop'||it.type==='gunshop'||it.type==='ammoshop') openShop(it.type);
   if(it.type==='chat') openChat(it.npc);
+  if(it.type==='plot') farmUse(it.i);
+  if(it.type==='market') openBag(true);
 }
 function openShop(kind){
   const body=$('pBody'); body.textContent='';
@@ -2160,6 +2229,7 @@ function updateRemotes(dt){
 // ---------- register houses, dealer and neighbours as things you can use ----------
 HOUSES.forEach(h=>{ if(h.bed) INTER.push({type:'bed',x:h.bed.x,z:h.bed.z,r:1.9,label:'睡觉'}); if(h.ward) INTER.push({type:'wardrobe',x:h.ward.x,z:h.ward.z,r:1.6,label:'衣柜'}); if(h.shop) INTER.push({type:h.shop,x:h.table.x,z:h.table.z,r:2.4,label:h.shopLabel}); });
 INTER.push({type:'dealer',x:DEALER.x,z:DEALER.z,r:3.5,label:'买车'});
+PLOTS.forEach((P,i)=>{ P.it={type:'plot',i,x:P.x,z:P.z,r:1.7,label:'种菜'}; INTER.push(P.it); }); INTER.push({type:'market',x:MARKET.x,z:MARKET.z-1.0,r:2.2,label:'卖菜'});
 addNeighbour('小美','开朗爱笑的大学生，喜欢看NBA，偶尔开个小玩笑',HOUSES[1],0xf3c6d6,0xe58aa8,0x3a2418);
 addNeighbour('小雪','安静温柔的插画师，喜欢画画和猫',HOUSES[4],0xdfe8f5,0x8fb1d9,0x15110e);
 addNeighbour('丽丽','活泼直爽的健身教练，爱运动，喜欢和人比体能',HOUSES[6],0xfff1c9,0xe2541b,0x5a3a20);
@@ -2191,7 +2261,8 @@ function updateFarts(dt){
 }
 // ---------- police ----------
 const POLICE={wanted:0,lastCrime:0,car:null,officers:[],phase:'none',nextWave:0,arrestHits:0};
-function raiseWanted(v){ POLICE.wanted=Math.min(3,POLICE.wanted+v); POLICE.lastCrime=t; updWanted(); }
+function friendsOnline(){ return MP.peers.size>0; }
+function raiseWanted(v){ if(friendsOnline()) return; POLICE.wanted=Math.min(3,POLICE.wanted+v); POLICE.lastCrime=t; updWanted(); }
 function updWanted(){ const w=$('wanted'); w.hidden=POLICE.wanted<=0; w.textContent='通缉 '+'★'.repeat(POLICE.wanted)+'☆'.repeat(3-POLICE.wanted); }
 const inArenaXZ=(x,z)=>Math.abs(x)<ARENA.x1&&z>ARENA.z0&&z<ARENA.z1;
 function spawnPolice(){
@@ -2237,6 +2308,7 @@ function policeAI(n,dt){
   npcPose(n,{hipY:.9,lTh:-.25,lKn:.35,rKn:.3,lSh:-1.2,lEl:-1.6,rSh:-1.3-0.5*pu,rEl:-1.4+1.3*pu});
 }
 function updatePolice(dt){
+  if(friendsOnline()){ if(POLICE.wanted>0||POLICE.car||POLICE.officers.length){ POLICE.wanted=0; updWanted(); despawnPolice(); toast('朋友在线：警察撤走了，现在只有你们俩对枪'); } return; }
   if(POLICE.wanted>0&&t-POLICE.lastCrime>45&&POLICE.officers.every(n=>n.dead||Math.hypot(n.g.position.x-avatar.position.x,n.g.position.z-avatar.position.z)>12)){ POLICE.wanted=0; updWanted(); despawnPolice(); toast('警察不追了'); }
   if(POLICE.wanted>0&&POLICE.phase==='none'&&t>POLICE.nextWave) spawnPolice();
   const c=POLICE.car;
@@ -2518,7 +2590,10 @@ function setPose(dt){
   S(head,'y',headY);S(head,'x',headX);S(head,'z',headZ);
   hips.position.y=lerp(hips.position.y,hipY+HIP_OFF,k);
 }
-function blocked(x,z){for(const d of defenders){if(defenseOn&&!(d.down>0)&&Math.hypot(x-d.g.position.x,z-d.g.position.z)<0.6)return true}for(const o of obstacles){if(Math.hypot(x-o.x,z-o.z)<o.r+0.3)return true}for(const r of RECTS){if(x>r.x0-0.3&&x<r.x1+0.3&&z>r.z0-0.3&&z<r.z1+0.3)return true}return Math.abs(x)>88||Math.abs(z)>88}
+function blocked(x,z){for(const d of defenders){if(defenseOn&&!(d.down>0)&&Math.hypot(x-d.g.position.x,z-d.g.position.z)<0.6)return true}for(const o of obstacles){if(Math.hypot(x-o.x,z-o.z)<o.r+0.3)return true}for(const r of RECTS){if(r.h>py+0.5&&x>r.x0-0.3&&x<r.x1+0.3&&z>r.z0-0.3&&z<r.z1+0.3)return true}return Math.abs(x)>88||Math.abs(z)>88}
+// highest surface under (x,z) that is no more than a step above `lim`: floor, furniture, wall tops, roofs
+function surfaceAt(x,z,lim){ let h=0; for(const r of RECTS){ if(r.h<=lim&&r.h>h&&x>r.x0-0.12&&x<r.x1+0.12&&z>r.z0-0.12&&z<r.z1+0.12) h=r.h; }
+  for(const R of ROOFS){ const u=Math.max(Math.abs(x-R.cx)/R.hx,Math.abs(z-R.cz)/R.hz); if(u<1){ const y=R.y0+R.h*(1-u); if(y<=lim&&y>h) h=y; } } return h; }
 function loop(){
   const dt=Math.min(clock.getDelta(),0.05); t+=dt;
   // input direction in camera space
@@ -2551,20 +2626,22 @@ function loop(){
   const myaw=gun.held?moveYaw:yaw;
   const nx=avatar.position.x+Math.sin(myaw)*speed*dt, nz=avatar.position.z+Math.cos(myaw)*speed*dt;
   if(!locked){
-  if(py>4.5||!blocked(nx,avatar.position.z))avatar.position.x=nx;
-  if(py>4.5||!blocked(avatar.position.x,nz))avatar.position.z=nz;
+  if(!blocked(nx,avatar.position.z))avatar.position.x=nx;
+  if(!blocked(avatar.position.x,nz))avatar.position.z=nz;
   avatar.position.x=Math.max(-88,Math.min(88,avatar.position.x)); avatar.position.z=Math.max(-88,Math.min(88,avatar.position.z)); if(py>80){py=80;vy=Math.min(vy,0);}
   }
   phase+=dt*(speed<2?speed*4.2:speed*2.9);
   // jump physics
   const dunkCtl=act&&act.type==='dunk'&&act.stage!=='approach'&&act.stage!=='gather';
-  if(!onGround&&!dunkCtl){vy-=13*dt;py+=vy*dt;if(py<=0){py=0;vy=0;onGround=true;landSquash=1}}
+  const floorY=car.in||player.dead?0:surfaceAt(avatar.position.x,avatar.position.z,py+0.5);
+  if(onGround&&!dunkCtl){ if(py-floorY>0.35){onGround=false;vy=0;} else py=floorY; }
+  if(!onGround&&!dunkCtl){vy-=13*dt;py+=vy*dt;if(py<=floorY&&vy<=0){py=floorY;vy=0;onGround=true;landSquash=1}}
   landSquash=Math.max(0,landSquash-dt*5);
   avatar.position.y=py; avatar.rotation.y=yaw;
   if(car.in){ const s=carSeat(); avatar.position.copy(s); py=0; if(!gun.held){ yaw=car.heading; avatar.rotation.y=yaw; } }
   setPose(dt);
   updateBall(dt,{x:Math.sin(yaw)*speed,z:Math.cos(yaw)*speed});
-  updateWorld(dt); updateDefenders(dt); updateGun(dt); updateCombat(dt); updatePickups(dt); updateSocial(dt); updateMatch(dt); updateRemotes(dt); updateFarts(dt); updatePolice(dt); updateRefBall(dt); updateHS(dt); sendPresence(); updUI();
+  updateWorld(dt); updateDefenders(dt); updateGun(dt); updateCombat(dt); updatePickups(dt); updateFarm(dt); updateSocial(dt); updateMatch(dt); updateRemotes(dt); updateFarts(dt); updatePolice(dt); updateRefBall(dt); updateHS(dt); sendPresence(); updUI();
   exprT=Math.max(0,exprT-dt); pumpT=Math.max(0,pumpT-dt); if(window.__setExpr){const target=exprT>0?1:0; window.__exprV=lerp(window.__exprV||0,target,1-Math.exp(-dt*10)); __setExpr(window.__exprV);}
   $('state').textContent=statusText(); updMeter(dt); updQuit();
   // camera
